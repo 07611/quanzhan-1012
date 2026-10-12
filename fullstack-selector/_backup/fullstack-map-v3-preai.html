@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全栈技术选型器 · Fullstack Map</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%232563eb'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle' fill='white' font-family='sans-serif'%3EF%3C/text%3E%3C/svg%3E">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  button { font-family: inherit; font-size: inherit; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: #f5f5f4; color: #18181b; line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .app { max-width: 960px; margin: 0 auto; padding: 32px 20px 80px; }
+
+  /* ===== 头部 ===== */
+  header { margin-bottom: 20px; }
+  header h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+  header p { color: #71717a; font-size: 14px; margin-top: 6px; }
+
+  /* 全局搜索框 */
+  .search-box {
+    margin-top: 14px; position: relative; max-width: 420px;
+  }
+  .search-box input {
+    width: 100%; padding: 10px 14px 10px 38px; font-size: 14px;
+    border: 1.5px solid #e4e4e7; border-radius: 8px; background: #fff;
+    outline: none; transition: border-color .15s;
+  }
+  .search-box input:focus { border-color: #2563eb; }
+  .search-box .s-icon {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    color: #a1a1aa; width: 16px; height: 16px; pointer-events: none;
+  }
+  .search-results {
+    display: none; position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+    background: #fff; border: 1px solid #e4e4e7; border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.08); max-height: 360px; overflow-y: auto; z-index: 50;
+  }
+  .search-results.open { display: block; }
+  .sr-group { padding: 8px 12px 4px; font-size: 11px; color: #a1a1aa; font-weight: 600; }
+  .sr-item {
+    padding: 8px 14px; cursor: pointer; font-size: 13px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .sr-item:hover { background: #f5f5f5; }
+  .sr-item .sr-cat { color: #a1a1aa; font-size: 11px; }
+
+  /* 进度条 */
+  .steps-bar { display: flex; gap: 6px; margin-top: 18px; flex-wrap: wrap; align-items: center; }
+  .step-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 999px; font-size: 13px;
+    border: 1px solid #e4e4e7; background: #fff; color: #71717a; cursor: pointer;
+    transition: all .15s;
+  }
+  .step-pill:hover { border-color: #a1a1aa; }
+  .step-pill.active { border-color: #2563eb; color: #2563eb; font-weight: 600; background: #eff6ff; }
+  .step-pill.done { border-color: #bbf7d0; color: #16a34a; background: #f0fdf4; }
+  .step-pill.done::before { content: "✓"; font-weight: 700; }
+  .page-count { margin-left: auto; font-size: 12px; color: #a1a1aa; }
+
+  /* ===== 主区 ===== */
+  .card-wrap {
+    background: #fff; border: 1px solid #e4e4e7; border-radius: 12px;
+    padding: 28px 26px; margin-bottom: 20px;
+    animation: fadeUp .25s ease;
+  }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .step-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+  .step-title { font-size: 20px; font-weight: 700; }
+  .step-sub { font-size: 13px; color: #71717a; margin: 4px 0 18px; }
+  .rec-btn {
+    border: 1px dashed #2563eb; color: #2563eb; background: #eff6ff;
+    border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer;
+    white-space: nowrap; transition: all .15s;
+  }
+  .rec-btn:hover { background: #dbeafe; }
+
+  .group { margin-bottom: 24px; }
+  .group:last-child { margin-bottom: 4px; }
+  .group-label {
+    font-size: 13px; font-weight: 600; color: #52525b;
+    margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+  }
+  .group-label .must { color: #dc2626; font-weight: 700; }
+  .group-label .count { margin-left: auto; font-weight: 400; color: #a1a1aa; font-size: 12px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)); gap: 10px; }
+  @media (min-width: 720px) {
+    .grid:has(> :nth-child(4):last-child) { grid-template-columns: repeat(4, 1fr); }
+    .grid:has(> :nth-child(5):last-child) { grid-template-columns: repeat(3, 1fr); }
+  }
+  .opt {
+    position: relative; border: 1.5px solid #e4e4e7; border-radius: 10px;
+    padding: 12px 14px; cursor: pointer; background: #fff;
+    transition: border-color .12s, background .12s, transform .1s;
+  }
+  .opt:hover { border-color: #a1a1aa; transform: translateY(-1px); }
+  .opt.selected { border-color: #2563eb; background: #eff6ff; }
+  .opt.selected .opt-name { color: #1d4ed8; font-weight: 700; }
+  .opt.disabled { opacity: .55; cursor: default; }
+  .opt-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 3px; }
+  .opt-name { font-size: 15px; font-weight: 600; }
+  .opt-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .opt-desc { font-size: 12px; color: #71717a; line-height: 1.5; display: block; }
+  .opt-tags { margin-top: 6px; display: flex; gap: 4px; flex-wrap: wrap; }
+  .opt-tag {
+    font-size: 10px; color: #4f6b9a; background: #eef2f7;
+    padding: 1px 7px; border-radius: 999px; white-space: nowrap;
+  }
+  .opt .check {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #2563eb; color: #fff; font-size: 12px; font-weight: 700;
+    display: none; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .opt.selected .check { display: flex; }
+  .opt .info-btn {
+    width: 22px; height: 22px; border-radius: 50%; padding: 0;
+    border: 1px solid #e4e4e7; background: #fff; color: #71717a;
+    font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all .12s; flex-shrink: 0;
+  }
+  .opt .info-btn:hover { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
+
+  /* ===== 底部导航 ===== */
+  .nav { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+  .kbd-tip { font-size: 12px; color: #a1a1aa; }
+  .kbd-tip kbd {
+    border: 1px solid #e4e4e7; border-bottom-width: 2px; border-radius: 4px;
+    padding: 1px 6px; font-size: 11px; background: #fff; font-family: inherit;
+  }
+  .btn {
+    padding: 11px 24px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    border: 1px solid #e4e4e7; background: #fff; color: #3f3f46; cursor: pointer;
+    transition: all .12s;
+  }
+  .btn:hover { border-color: #a1a1aa; }
+  .btn.primary { background: #2563eb; border-color: #2563eb; color: #fff; }
+  .btn.primary:hover { background: #1d4ed8; }
+  .btn.primary:disabled { background: #bfdbfe; border-color: #bfdbfe; cursor: not-allowed; }
+
+  /* ===== 汇总页 ===== */
+  .flow {
+    display: flex; align-items: stretch; gap: 0; margin: 18px 0 26px;
+    overflow-x: auto; padding-bottom: 6px;
+  }
+  .flow-node {
+    flex: 1; min-width: 128px; background: #f8fafc; border: 1.5px solid #bfdbfe;
+    border-radius: 10px; padding: 12px 10px; text-align: center;
+  }
+  .flow-node .fn-label { font-size: 11px; color: #2563eb; font-weight: 700; letter-spacing: .05em; }
+  .flow-node .fn-value { font-size: 14px; font-weight: 700; margin-top: 4px; }
+  .flow-node .fn-sub { font-size: 11px; color: #71717a; margin-top: 2px; }
+  .flow-arrow { align-self: center; padding: 0 6px; color: #a1a1aa; font-size: 18px; flex: 0 0 auto; }
+
+  .sum-section { border-top: 1px solid #e4e4e7; padding: 14px 0; }
+  .sum-section:first-of-type { border-top: none; padding-top: 4px; }
+  .sum-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .sum-head h4 { font-size: 15px; font-weight: 700; }
+  .sum-edit { font-size: 12px; color: #2563eb; cursor: pointer; background: none; border: none; padding: 4px 8px; }
+  .sum-edit:hover { text-decoration: underline; }
+  .sum-row { display: flex; gap: 10px; font-size: 13px; padding: 3px 0; align-items: center; }
+  .sum-key { min-width: 110px; color: #71717a; font-weight: 500; }
+  .sum-val { color: #18181b; font-weight: 600; }
+  .sum-info { font-size: 11px; color: #2563eb; cursor: pointer; margin-left: 4px; }
+  .sum-info:hover { text-decoration: underline; }
+
+  .actions { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 16px 18px; margin-top: 18px; }
+  .actions h4 { font-size: 15px; color: #15803d; margin-bottom: 10px; }
+  .actions ol { padding-left: 20px; font-size: 13px; line-height: 2; color: #166534; }
+  .actions code { background: #dcfce7; padding: 1px 6px; border-radius: 4px; font-size: 12px; }
+
+  .toolbox { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
+  .toolbox .btn { flex: 1; min-width: 130px; }
+
+  /* ===== 详情弹窗 ===== */
+  .modal-mask {
+    position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 100;
+    display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-mask.open { display: flex; }
+  .modal {
+    background: #fff; border-radius: 14px; max-width: 560px; width: 100%;
+    max-height: 85vh; overflow-y: auto; padding: 26px 28px;
+    animation: fadeUp .2s ease;
+  }
+  .modal h2 { font-size: 19px; font-weight: 700; margin-bottom: 4px; }
+  .modal .modal-cat { font-size: 12px; color: #2563eb; font-weight: 600; margin-bottom: 14px; }
+  .modal .modal-body { font-size: 14px; line-height: 1.8; color: #3f3f46; }
+  .modal .modal-body p { margin-bottom: 10px; }
+  .modal .modal-body b { color: #18181b; }
+  .modal .modal-file {
+    margin-top: 16px; padding: 10px 12px; background: #f5f5f5; border-radius: 8px;
+    font-size: 12px; color: #52525b;
+  }
+  .modal .modal-file code { background: #e4e4e7; padding: 1px 6px; border-radius: 4px; }
+  .modal-close {
+    margin-top: 18px; width: 100%; padding: 10px; background: #18181b; color: #fff;
+    border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+
+  @media (max-width: 600px) {
+    .card-wrap { padding: 20px 16px; }
+    header h1 { font-size: 22px; }
+    .grid { grid-template-columns: 1fr; }
+    .page-count { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>全栈技术选型器</h1>
+    <p>5 步理清你的全栈技术链。点选卡片，点卡片上的 i 按钮看详细知识，顶部可全局搜索。</p>
+    <div class="search-box">
+      <svg class="s-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+      <input type="text" id="searchInput" placeholder="搜索技术，如：JWT、Redis、Docker...">
+      <div class="search-results" id="searchResults"></div>
+    </div>
+    <div class="steps-bar" id="stepsBar"></div>
+  </header>
+
+  <main id="main"></main>
+
+  <div class="nav" id="nav"></div>
+</div>
+
+<!-- 详情弹窗 -->
+<div class="modal-mask" id="modalMask">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+/* ================= 数据 ================= */
+var FW_BY_LANG = {
+  "TypeScript": [
+    { v: "Express", d: "最简最通用，Node 生态事实标准", tags: ["最简"] },
+    { v: "NestJS", d: "企业级模块化，依赖注入与微服务", tags: ["企业级"] },
+    { v: "Fastify", d: "高性能 + Schema 校验", tags: ["高性能"] }
+  ],
+  "Python": [
+    { v: "FastAPI", d: "异步 + 类型 + 自动文档，AI 接口首选", tags: ["AI 接口首选"] },
+    { v: "Django", d: "全栈自带 Admin，业务快速落地", tags: ["自带后台"] },
+    { v: "Flask", d: "极简微框架，灵活自由", tags: ["极简"] }
+  ],
+  "Java": [
+    { v: "Spring Boot", d: "企业级全家桶，微服务生态最成熟", tags: ["企业标准","岗位最多"] },
+    { v: "Quarkus", d: "云原生 GraalVM，启动快内存省", tags: ["云原生"] }
+  ],
+  "Go": [
+    { v: "Gin", d: "高并发 REST 事实标准", tags: ["高并发标准"] },
+    { v: "Fiber", d: "fasthttp 极速，类 Express 风格", tags: ["极速"] },
+    { v: "Echo", d: "高性能，中间件生态好", tags: ["均衡"] }
+  ],
+  "Rust": [
+    { v: "Actix Web", d: "吞吐性能顶尖", tags: ["性能顶尖"] },
+    { v: "Axum", d: "Tokio 官方生态，类型安全", tags: ["新项目主流"] }
+  ]
+};
+
+var RECOMMEND = [
+  { framework: "React", meta: "Next.js", ui: "Tailwind + Shadcn" },
+  { lang: "TypeScript", fw: "NestJS", api: "REST" },
+  { main: "MySQL", cache: "Redis", orm: "Prisma" },
+  { auth: "JWT", policies: ["HTTPS", "参数化查询"] },
+  { platform: "Vercel", container: "Docker", cicd: "GitHub Actions" }
+];
+
+var STEPS = [
+  { id: "fe", title: "第 1 步 · 前端开发", sub: "决定界面的技术底座与审美方案",
+    groups: [
+      { key: "framework", label: "UI 框架", options: [
+        { v: "React", d: "生态最大、招聘最多，AI 编程工具支持最好", tags: ["最流行","岗位最多"] },
+        { v: "Vue", d: "上手最快、模板直观，国内项目与教学最常见", tags: ["新手友好","国内常用"] },
+        { v: "Angular", d: "企业级强约定，TypeScript 原生", tags: ["企业级"] },
+        { v: "Svelte", d: "编译型无虚拟 DOM，包体最小", tags: ["极简","高性能"] }
+      ]},
+      { key: "meta", label: "元框架 / 渲染模式", options: [
+        { v: "Next.js", d: "React 默认全栈：路由、SSR、Server Actions", tags: ["React 默认"] },
+        { v: "Nuxt", d: "Vue 对应全栈元框架，生态成熟", tags: ["Vue 默认"] },
+        { v: "Astro", d: "内容站首选：默认零 JS，岛屿架构", tags: ["内容站首选"] },
+        { v: "纯 SPA (Vite)", d: "前后端分离纯客户端，最灵活", tags: ["最灵活"] }
+      ]},
+      { key: "ui", label: "UI / 审美方案", options: [
+        { v: "Tailwind + Shadcn", d: "现代主流，高度定制、组件精致", tags: ["最流行"] },
+        { v: "Ant Design", d: "中后台利器，企业组件齐全", tags: ["中后台标配"] },
+        { v: "Element Plus", d: "Vue 生态常用，中文文档友好", tags: ["Vue 常用"] },
+        { v: "手写 CSS", d: "完全自定义，学习样式本质", tags: ["学习向"] }
+      ]}
+    ]},
+  { id: "be", title: "第 2 步 · 后端开发", sub: "先选语言，框架会跟着语言自动联动",
+    groups: [
+      { key: "lang", label: "后端语言", options: [
+        { v: "TypeScript", d: "前后端同语言，类型统一", tags: ["全栈同语言"] },
+        { v: "Python", d: "AI 生态最好，开发效率高", tags: ["AI 首选"] },
+        { v: "Java", d: "企业级标准，岗位最多", tags: ["企业岗位多"] },
+        { v: "Go", d: "高并发微服务之王，部署简单", tags: ["高并发"] },
+        { v: "Rust", d: "极致性能与内存安全", tags: ["极致性能"] }
+      ]},
+      { key: "fw", label: "后端框架", dependsOn: "lang", options: [] },
+      { key: "api", label: "API 协议", options: [
+        { v: "REST", d: "最通用、调试简单，90% 项目首选", tags: ["最通用"] },
+        { v: "GraphQL", d: "按需取数，前端灵活", tags: ["复杂查询"] },
+        { v: "gRPC", d: "高性能二进制，微服务内部通信", tags: ["微服务内部"] }
+      ]}
+    ]},
+  { id: "db", title: "第 3 步 · 数据库", sub: "数据存哪里、怎么读",
+    groups: [
+      { key: "main", label: "主数据库", options: [
+        { v: "MySQL", d: "最常用，教学与企业标配", tags: ["教学企业标配"] },
+        { v: "PostgreSQL", d: "功能最强，复杂查询与 JSON", tags: ["功能最强"] },
+        { v: "MongoDB", d: "文档型，Schema 灵活快速迭代", tags: ["灵活"] },
+        { v: "SQLite", d: "单文件本地库，原型零成本", tags: ["零配置"] }
+      ]},
+      { key: "cache", label: "缓存", options: [
+        { v: "Redis", d: "会话、限流、排行榜标配", tags: ["标配缓存"] },
+        { v: "进程内缓存", d: "内存变量级，单机够用", tags: ["单机够用"] },
+        { v: "暂无", d: "初期不需要，后续再加", tags: ["后期再加"] }
+      ]},
+      { key: "orm", label: "数据访问层", options: [
+        { v: "Prisma", d: "TS 最流行，类型安全、迁移直观", tags: ["TS 最流行"] },
+        { v: "Drizzle", d: "轻量 SQL 构建器，贴近 SQL", tags: ["轻量"] },
+        { v: "SQLAlchemy", d: "Python ORM 标准", tags: ["Python 标准"] },
+        { v: "MyBatis", d: "Java 常用，SQL 可控性强", tags: ["Java 常用"] },
+        { v: "原生 SQL", d: "最直接，学习与简单项目", tags: ["学习向"] }
+      ]}
+    ]},
+  { id: "sec", title: "第 4 步 · 安全与认证", sub: "用户怎么登录、接口怎么防攻击",
+    groups: [
+      { key: "auth", label: "认证方案", options: [
+        { v: "JWT", d: "无状态令牌，前后端分离常用", tags: ["前后端分离标配"] },
+        { v: "Session+Cookie", d: "传统服务端会话，简单易懂", tags: ["简单网站"] },
+        { v: "Auth.js (NextAuth)", d: "开箱即用，支持多种登录方式", tags: ["开箱即用"] },
+        { v: "第三方 OAuth", d: "微信/GitHub/Google 登录", tags: ["免自建密码"] }
+      ]},
+      { key: "policies", label: "安全策略（可多选）", multi: true, options: [
+        { v: "HTTPS", d: "全站加密，部署平台通常自动配证书", tags: ["必选"] },
+        { v: "XSS 防护", d: "输入转义 / CSP，防注入脚本" },
+        { v: "CSRF 防护", d: "双重提交令牌，防跨站伪造" },
+        { v: "速率限制", d: "防刷接口与暴力破解" },
+        { v: "参数化查询", d: "防 SQL 注入，用 ORM 默认满足" },
+        { v: "安全响应头", d: "HSTS/CSP 等，缩小攻击面" }
+      ]}
+    ]},
+  { id: "ops", title: "第 5 步 · 部署与云服务", sub: "代码怎么上线、域名与 HTTPS 怎么配",
+    groups: [
+      { key: "platform", label: "部署平台", options: [
+        { v: "Vercel", d: "Next.js 首选，免费额度大，自动 HTTPS", tags: ["新手首选","免费额度大"] },
+        { v: "阿里云", d: "国内合规、访问快，学生/企业常用", tags: ["国内合规"] },
+        { v: "AWS", d: "国际大厂生态最全，学云原生", tags: ["国际大厂"] },
+        { v: "Railway/Render", d: "前后端 + 数据库一键托管", tags: ["个人项目友好"] },
+        { v: "自建服务器", d: "VPS 最自由，自配域名/IP/安全组", tags: ["最自由"] }
+      ]},
+      { key: "container", label: "容器化", options: [
+        { v: "Docker", d: "一次构建到处运行，团队标配", tags: ["团队标配"] },
+        { v: "Kubernetes", d: "大规模集群编排，复杂微服务", tags: ["大规模"] },
+        { v: "暂不需要", d: "小项目直接平台部署即可", tags: ["小项目省"] }
+      ]},
+      { key: "cicd", label: "CI/CD", options: [
+        { v: "GitHub Actions", d: "推代码自动测试构建部署", tags: ["最流行"] },
+        { v: "GitLab CI", d: "自托管仓库配套，企业内网", tags: ["企业内网"] },
+        { v: "手动部署", d: "服务器手动上传，小项目省事", tags: ["小项目省事"] }
+      ]}
+    ]}
+];
+
+/* ================= 详细知识库（弹窗内容） ================= */
+var DETAILS = {
+  "React": { cat: "前端框架", body:
+    "<p><b>是什么：</b>Facebook 开源的 UI 库，用组件化方式拼界面，2026 年市场份额约 45%，招聘需求最大。</p>" +
+    "<p><b>适合：</b>中大型应用、需要生态和招聘池的项目；AI 编程工具对 React 支持最好。</p>" +
+    "<p><b>注意：</b>概念多（Hooks、状态管理），初学曲线比 Vue 陡；React 19 编译器已省掉大部分手动 memo。</p>",
+    file: "资料库/前端生态补充.md" },
+  "Vue": { cat: "前端框架", body:
+    "<p><b>是什么：</b>尤雨溪开源的渐进式框架，模板写法接近 HTML，上手最平缓。</p>" +
+    "<p><b>适合：</b>国内项目、教学、从传统页面过渡到现代前端的团队；配合 Pinia 做状态管理。</p>" +
+    "<p><b>注意：</b>国际招聘池小于 React，但国内生态和文档最友好。</p>",
+    file: "资料库/前端生态补充.md" },
+  "Angular": { cat: "前端框架", body:
+    "<p><b>是什么：</b>Google 维护的全功能框架，自带路由、表单、DI，约定极强。</p>" +
+    "<p><b>适合：</b>大型企业团队、需要强规范统一代码风格的项目。</p>" +
+    "<p><b>注意：</b>学习曲线陡，概念多（RxJS、模块），小项目用它偏重。</p>",
+    file: null },
+  "Svelte": { cat: "前端框架", body:
+    "<p><b>是什么：</b>编译型框架，没有虚拟 DOM，组件直接编译成原生 JS，包体最小。</p>" +
+    "<p><b>适合：</b>追求极致性能和小体积的项目、组件库、个人作品。</p>" +
+    "<p><b>注意：</b>生态和招聘池比 React/Vue 小；Svelte 5 的 runes 写反应式更直观。</p>",
+    file: null },
+  "Next.js": { cat: "元框架", body:
+    "<p><b>是什么：</b>React 的全栈元框架，App Router 稳定，带 SSR、Server Actions、文件路由。</p>" +
+    "<p><b>适合：</b>需要 SEO 的内容站、全栈一体的 React 项目；Vercel 部署零配置。</p>" +
+    "<p><b>注意：</b>概念多（Server/Client Component），初学要花几天理解数据获取方式。</p>",
+    file: "资料库/前端生态补充.md" },
+  "Nuxt": { cat: "元框架", body:
+    "<p><b>是什么：</b>Vue 对应的全栈元框架，约 70-80% 的认真 Vue 项目用它。</p>" +
+    "<p><b>适合：</b>Vue 技术栈的全栈应用、SSR、内容站。</p>" +
+    "<p><b>注意：</b>国内资料比 Next.js 少一点，但 Vue 团队上手快。</p>",
+    file: null },
+  "Astro": { cat: "元框架", body:
+    "<p><b>是什么：</b>内容站专用框架，默认输出零 JS，岛屿架构按需注水。</p>" +
+    "<p><b>适合：</b>博客、文档、营销站、新闻；性能极佳。</p>" +
+    "<p><b>注意：</b>强交互应用（后台、SaaS）不如 Next.js 合适。</p>",
+    file: null },
+  "纯 SPA (Vite)": { cat: "元框架", body:
+    "<p><b>是什么：</b>用 Vite 起一个纯客户端应用，自己配路由，后端 API 分离。</p>" +
+    "<p><b>适合：</b>学习、内部工具、不需要 SEO 的后台系统。</p>" +
+    "<p><b>注意：</b>首屏白屏、SEO 弱；不适合公开内容站。</p>",
+    file: null },
+  "Tailwind + Shadcn": { cat: "UI 方案", body:
+    "<p><b>是什么：</b>Tailwind 原子化 CSS + Shadcn/ui 复制式组件，现在最流行的现代审美。</p>" +
+    "<p><b>适合：</b>追求精致定制、不想被组件库绑死的项目。</p>" +
+    "<p><b>注意：</b>HTML 里 class 很长，初学要熟悉工具类。</p>",
+    file: null },
+  "Ant Design": { cat: "UI 方案", body:
+    "<p><b>是什么：</b>蚂蚁金服开源的企业级组件库，中后台标配，组件齐全。</p>" +
+    "<p><b>适合：</b>管理后台、数据平台、表单密集系统。</p>" +
+    "<p><b>注意：</b>视觉风格偏企业感，定制成本高；主要配 React。</p>",
+    file: null },
+  "Element Plus": { cat: "UI 方案", body:
+    "<p><b>是什么：</b>Vue 生态最常用的组件库，中文文档全，国内后台标配。</p>" +
+    "<p><b>适合：</b>Vue 技术栈的后台管理系统。</p>" +
+    "<p><b>注意：</b>视觉相对传统，不如 Tailwind 方案现代。</p>",
+    file: null },
+  "手写 CSS": { cat: "UI 方案", body:
+    "<p><b>是什么：</b>自己写 CSS 或用 CSS Modules，完全控制样式。</p>" +
+    "<p><b>适合：</b>学习 CSS、小项目、需要独特设计的作品。</p>" +
+    "<p><b>注意：</b>大项目维护成本高，没有组件库的现成交互。</p>",
+    file: null },
+
+  "TypeScript": { cat: "后端语言", body:
+    "<p><b>是什么：</b>在 Node.js 上跑 TS，前后端同语言同类型，配合 NestJS 做企业级后端。</p>" +
+    "<p><b>适合：</b>前端团队顺手做全栈、BFF 层、实时应用。</p>" +
+    "<p><b>注意：</b>CPU 密集型（加密、大数据）不如 Go/Rust；异步坑要熟悉。</p>",
+    file: "资料库/后端框架补充.md" },
+  "Python": { cat: "后端语言", body:
+    "<p><b>是什么：</b>AI/ML 生态最好，FastAPI 做 API 开发效率极高。</p>" +
+    "<p><b>适合：</b>AI 接口、数据分析后台、快速原型。</p>" +
+    "<p><b>注意：</b>并发受 GIL 限制，高吞吐不如 Go；部署要注意依赖管理。</p>",
+    file: "资料库/后端框架补充.md" },
+  "Java": { cat: "后端语言", body:
+    "<p><b>是什么：</b>企业级标准，Spring Boot 生态最全，金融/大厂岗位最多。</p>" +
+    "<p><b>适合：</b>大型企业系统、微服务、高合规场景。</p>" +
+    "<p><b>注意：</b>启动慢、配置重；初学概念多。</p>",
+    file: "资料库/后端框架补充.md" },
+  "Go": { cat: "后端语言", body:
+    "<p><b>是什么：</b>并发原语 goroutine 内置，编译成单二进制，部署极简，云原生标配。</p>" +
+    "<p><b>适合：</b>高并发 API、微服务、DevOps 工具、基础设施。</p>" +
+    "<p><b>注意：</b>错误处理啰嗦；生态不如 Java/Python 大。</p>",
+    file: "资料库/后端框架补充.md" },
+  "Rust": { cat: "后端语言", body:
+    "<p><b>是什么：</b>内存安全无 GC，性能顶尖，Actix/Axum 在 Web 后端增长快。</p>" +
+    "<p><b>适合：</b>高频交易、CDN 边缘、实时游戏后端、性能敏感服务。</p>" +
+    "<p><b>注意：</b>学习曲线极陡，编译慢；小项目用它过重。</p>",
+    file: "资料库/后端框架补充.md" },
+  "Express": { cat: "后端框架", body:
+    "<p><b>是什么：</b>Node 生态事实标准，极简路由中间件，生态最大。</p>" +
+    "<p><b>适合：</b>中小 API、原型、学习后端原理。</p>" +
+    "<p><b>注意：</b>无约定，大项目容易散；企业级建议上 NestJS。</p>",
+    file: "资料库/后端框架补充.md" },
+  "NestJS": { cat: "后端框架", body:
+    "<p><b>是什么：</b>TypeScript 企业级框架，装饰器+依赖注入，结构像 Spring。</p>" +
+    "<p><b>适合：</b>大型 Node 项目、微服务、团队协作。</p>" +
+    "<p><b>注意：</b>概念多，小项目用它偏重。</p>",
+    file: "资料库/后端框架补充.md" },
+  "Fastify": { cat: "后端框架", body:
+    "<p><b>是什么：</b>高性能 Node 框架，内置 Schema 校验，比 Express 快。</p>" +
+    "<p><b>适合：</b>高吞吐 API、对性能有要求的服务。</p>" +
+    "<p><b>注意：</b>生态比 Express 小。</p>",
+    file: "资料库/后端框架补充.md" },
+  "FastAPI": { cat: "后端框架", body:
+    "<p><b>是什么：</b>Python 现代异步框架，类型注解 + 自动生成 OpenAPI 文档，AI 接口首选。</p>" +
+    "<p><b>适合：</b>ML 推理服务、异步 REST API、数据平台。</p>" +
+    "<p><b>注意：</b>同步库混用会堵事件循环；要会用 async。</p>",
+    file: "资料库/后端框架补充.md" },
+  "Django": { cat: "后端框架", body:
+    "<p><b>是什么：</b>Python 全栈框架，自带 Admin、ORM、Auth， batteries included。</p>" +
+    "<p><b>适合：</b>内容平台、后台密集型业务、快速交付。</p>" +
+    "<p><b>注意：</b>约定强，灵活性低；异步支持在完善中。</p>",
+    file: "资料库/后端框架补充.md" },
+  "Flask": { cat: "后端框架", body:
+    "<p><b>是什么：</b>Python 极简微框架，灵活自由。</p>" +
+    "<p><b>适合：</b>原型、教学、小工具。</p>" +
+    "<p><b>注意：</b>生产项目现在多转向 FastAPI。</p>",
+    file: "资料库/后端框架补充.md" },
+  "Spring Boot": { cat: "后端框架", body:
+    "<p><b>是什么：</b>Java 企业级全家桶，自动配置，微服务生态（Spring Cloud/Data/Security）最全。</p>" +
+    "<p><b>适合：</b>金融、医疗、大型企业系统。</p>" +
+    "<p><b>注意：</b>3.x 已支持虚拟线程和 GraalVM，性能差距缩小。</p>",
+    file: "资料库/后端框架补充.md" },
+  "Quarkus": { cat: "后端框架", body:
+    "<p><b>是什么：</b>Red Hat 出的云原生 Java 框架，GraalVM 原生镜像，启动快内存省。</p>" +
+    "<p><b>适合：</b>Serverless、云原生微服务。</p>" +
+    "<p><b>注意：</b>生态不如 Spring Boot 大。</p>",
+    file: "资料库/后端框架补充.md" },
+  "Gin": { cat: "后端框架", body:
+    "<p><b>是什么：</b>Go 最流行的 Web 框架，高性能路由，中间件丰富。</p>" +
+    "<p><b>适合：</b>高并发 REST API、云原生服务。</p>" +
+    "<p><b>注意：</b>企业级结构不如 Java/Spring。</p>",
+    file: "资料库/后端框架补充.md" },
+  "Fiber": { cat: "后端框架", body:
+    "<p><b>是什么：</b>基于 fasthttp 的 Go 框架，API 像 Express，性能极高。</p>" +
+    "<p><b>适合：</b>追求极致吞吐的 HTTP 服务。</p>" +
+    "<p><b>注意：</b>fasthttp 与标准 net/http 生态不完全兼容。</p>",
+    file: "资料库/后端框架补充.md" },
+  "Echo": { cat: "后端框架", body:
+    "<p><b>是什么：</p>Go 高性能框架，中间件生态好，API 均衡。</p>" +
+    "<p><b>适合：</b>想要比 Gin 更全功能的 Go 项目。</p>" +
+    "<p><b>注意：</b>流行度低于 Gin。</p>",
+    file: "资料库/后端框架补充.md" },
+  "Actix Web": { cat: "后端框架", body:
+    "<p><b>是什么：</b>Rust 性能最强的 Web 框架，吞吐测试常居榜首。</p>" +
+    "<p><b>适合：</b>高频交易、实时通信、CDN 边缘。</p>" +
+    "<p><b>注意：</b>unsafe 使用门槛高。</p>",
+    file: "资料库/后端框架补充.md" },
+  "Axum": { cat: "后端框架", body:
+    "<p><b>是什么：</b>Tokio 官方团队出品，基于 tower，类型安全，Rust 新项目主流。</p>" +
+    "<p><b>适合：</b>新 Rust Web 项目、与 Tokio 生态集成。</p>" +
+    "<p><b>注意：</b>比 Actix 稍慢但更现代。</p>",
+    file: "资料库/后端框架补充.md" },
+  "REST": { cat: "API 协议", body:
+    "<p><b>是什么：</b>用 URL 表示资源，HTTP 方法表示操作，JSON 传输。</p>" +
+    "<p><b>适合：</b>90% 的常规项目，调试简单，生态最大。</p>" +
+    "<p><b>注意：</b>多资源组合时会出现过多请求。</p>",
+    file: "资料库/后端框架补充.md" },
+  "GraphQL": { cat: "API 协议", body:
+    "<p><b>是什么：</b>前端按需查询字段，一个端点搞定复杂数据组合。</p>" +
+    "<p><b>适合：</b>复杂前端、多端复用同一 API。</p>" +
+    "<p><b>注意：</b>学习成本、缓存、N+1 问题要处理。</p>",
+    file: "资料库/后端框架补充.md" },
+  "gRPC": { cat: "API 协议", body:
+    "<p><b>是什么：</b>Google 开源，二进制 Protobuf 传输，性能最高。</p>" +
+    "<p><b>适合：</b>微服务内部通信、多语言服务互调。</p>" +
+    "<p><b>注意：</b>浏览器不能直接调，需要网关转 REST。</p>",
+    file: "资料库/后端框架补充.md" },
+
+  "MySQL": { cat: "主数据库", body:
+    "<p><b>是什么：</b>最流行的开源关系型数据库，教学与国内企业标配。</p>" +
+    "<p><b>适合：</b>大多数 Web 项目、课程作业、内容管理。</p>" +
+    "<p><b>注意：</b>复杂查询和 JSON 能力不如 PostgreSQL。</p>",
+    file: "资料库/数据库与ORM.md" },
+  "PostgreSQL": { cat: "主数据库", body:
+    "<p><b>是什么：</b>功能最强的开源关系库，支持 JSON、地理信息、全文检索。</p>" +
+    "<p><b>适合：</b>复杂业务、数据分析、需要高级特性的项目。</p>" +
+    "<p><b>注意：</b>配置和运维比 MySQL 复杂。</p>",
+    file: "资料库/数据库与ORM.md" },
+  "MongoDB": { cat: "主数据库", body:
+    "<p><b>是什么：</b>文档型数据库，Schema 灵活，存 JSON 一样自然。</p>" +
+    "<p><b>适合：</b>数据结构多变、快速原型、内容管理。</p>" +
+    "<p><b>注意：</b>多表关联弱，事务不如关系库。</p>",
+    file: "资料库/数据库与ORM.md" },
+  "SQLite": { cat: "主数据库", body:
+    "<p><b>是什么：</b>单文件嵌入式数据库，零配置，一个文件就是整个库。</p>" +
+    "<p><b>适合：</b>本地原型、小工具、桌面应用、课程演示。</p>" +
+    "<p><b>注意：</b>不适合高并发多用户生产。</p>",
+    file: "资料库/数据库与ORM.md" },
+  "Redis": { cat: "缓存", body:
+    "<p><b>是什么：</b>内存键值库，极快，常用于缓存、会话、排行榜、分布式锁。</p>" +
+    "<p><b>适合：</b>几乎所有生产项目，缓存热点数据。</p>" +
+    "<p><b>注意：</b>内存成本高，要设过期策略防止内存爆炸。</p>",
+    file: "资料库/数据库与ORM.md" },
+  "进程内缓存": { cat: "缓存", body:
+    "<p><b>是什么：</b>用内存变量存热点数据，如 LRU Map。</p>" +
+    "<p><b>适合：</b>单机小项目、配置项缓存。</p>" +
+    "<p><b>注意：</b>多实例部署时各节点缓存不一致。</p>",
+    file: null },
+  "Prisma": { cat: "ORM", body:
+    "<p><b>是什么：</b>TS 最流行的 ORM，类型安全，迁移文件直观。</p>" +
+    "<p><b>适合：</b>Node/TS 项目，想要类型安全和好 DX。</p>" +
+    "<p><b>注意：</b>复杂 SQL 要写 raw query。</p>",
+    file: "资料库/数据库与ORM.md" },
+  "Drizzle": { cat: "ORM", body:
+    "<p><b>是什么：</b>轻量 SQL 构建器，贴近 SQL 本身，包小。</p>" +
+    "<p><b>适合：</b>不想被 ORM 黑盒、想要 SQL 可控的 TS 项目。</p>" +
+    "<p><b>注意：</b>生态比 Prisma 小。</p>",
+    file: "资料库/数据库与ORM.md" },
+  "SQLAlchemy": { cat: "ORM", body:
+    "<p><b>是什么：</b>Python ORM 老大哥，功能最全，支持同步/异步。</p>" +
+    "<p><b>适合：</b>Python 全栈项目、Django 之外的选择。</p>" +
+    "<p><b>注意：</b>API 复杂，学习曲线陡。</p>",
+    file: "资料库/数据库与ORM.md" },
+  "MyBatis": { cat: "ORM", body:
+    "<p><b>是什么：</b>Java 常用，SQL 自己写，映射成对象。</p>" +
+    "<p><b>适合：</b>需要精细控制 SQL 的国内 Java 项目。</p>" +
+    "<p><b>注意：</b>要写 XML 或注解，样板多。</p>",
+    file: "资料库/数据库与ORM.md" },
+  "原生 SQL": { cat: "ORM", body:
+    "<p><b>是什么：</b>直接写 SQL，用 mysql2/pg 等驱动执行。</p>" +
+    "<p><b>适合：</b>学习、小项目、性能极致场景。</p>" +
+    "<p><b>注意：</b>注意参数化防注入，大项目维护难。</p>",
+    file: "资料库/数据库与ORM.md" },
+
+  "JWT": { cat: "认证", body:
+    "<p><b>是什么：</b>无状态令牌，Header.Payload.Signature 三段，请求头携带。</p>" +
+    "<p><b>适合：</b>前后端分离、跨域、API。</p>" +
+    "<p><b>注意：</b>payload 只是 Base64 不是加密；Access Token 要短命，配 Refresh Token；登出要黑名单。</p>",
+    file: "资料库/Web安全清单.md" },
+  "Session+Cookie": { cat: "认证", body:
+    "<p><b>是什么：</b>服务端存会话，Cookie 只存 Session ID。</p>" +
+    "<p><b>适合：</b>传统网站、同域、简单易懂。</p>" +
+    "<p><b>注意：</b>多实例要共享 Session；跨域麻烦。</p>",
+    file: "资料库/Web安全清单.md" },
+  "Auth.js (NextAuth)": { cat: "认证", body:
+    "<p><b>是什么：</b>封装好的登录方案，支持 Google/GitHub/微信等多种 Provider。</p>" +
+    "<p><b>适合：</b>Next.js 项目省得自己写登录。</p>" +
+    "<p><b>注意：</b>绑定 Next.js 生态。</p>",
+    file: null },
+  "第三方 OAuth": { cat: "认证", body:
+    "<p><b>是什么：</b>用微信/GitHub/Google 账号登录，不用自己管密码。</p>" +
+    "<p><b>适合：</b>C 端产品、降低注册门槛。</p>" +
+    "<p><b>注意：</b>要申请 AppID 和密钥，流程比想象复杂。</p>",
+    file: null },
+  "HTTPS": { cat: "安全策略", body:
+    "<p><b>是什么：</b>全站 TLS 加密，防中间人窃听。</p>" +
+    "<p><b>适合：</b>所有上线项目必选。</p>" +
+    "<p><b>注意：</b>Vercel/Netlify/Railway 自动配证书；自建服务器用 Certbot 免费申请。</p>",
+    file: "资料库/云部署与IP配置.md" },
+  "XSS 防护": { cat: "安全策略", body:
+    "<p><b>是什么：</b>防页面注入恶意脚本。</p>" +
+    "<p><b>做法：</b>输出转义、CSP 头、HttpOnly Cookie 防偷 token。</p>" +
+    "<p><b>注意：</b>富文本场景要做白名单过滤。</p>",
+    file: "资料库/Web安全清单.md" },
+  "CSRF 防护": { cat: "安全策略", body:
+    "<p><b>是什么：</b>防借登录态发伪造请求。</p>" +
+    "<p><b>做法：</b>CSRF Token、SameSite Cookie。</p>" +
+    "<p><b>注意：</b>纯 JWT+Authorization 头的 API 天然免疫 CSRF。</p>",
+    file: "资料库/Web安全清单.md" },
+  "速率限制": { cat: "安全策略", body:
+    "<p><b>是什么：</b>限制单位时间请求次数，防刷接口和暴力破解。</p>" +
+    "<p><b>做法：</b>用 express-rate-limit、Redis+Lua 滑动窗口。</p>" +
+    "<p><b>注意：</b>登录/发验证码接口必加。</p>",
+    file: "资料库/Web安全清单.md" },
+  "参数化查询": { cat: "安全策略", body:
+    "<p><b>是什么：</b>SQL 用占位符传参，不拼字符串。</p>" +
+    "<p><b>适合：</b>所有数据库操作，用 ORM 默认就满足。</p>" +
+    "<p><b>注意：</b>手写 SQL 最容易踩坑。</p>",
+    file: "资料库/Web安全清单.md" },
+  "安全响应头": { cat: "安全策略", body:
+    "<p><b>是什么：</b>HSTS/CSP/X-Frame-Options 等头，缩小攻击面。</p>" +
+    "<p><b>做法：</b>Node 用 helmet 中间件一键开。</p>" +
+    "<p><b>注意：</b>别泄露 Server 版本号。</p>",
+    file: "资料库/Web安全清单.md" },
+
+  "Vercel": { cat: "部署平台", body:
+    "<p><b>是什么：</b>Next.js 母公司的平台，前端全栈一键部署，全球 CDN。</p>" +
+    "<p><b>额度：</b>Hobby 免费 100GB 流量/月、100万函数调用。</p>" +
+    "<p><b>注意：</b>免费版仅限个人非商业项目；数据库要接外部。</p>",
+    file: "资料库/云部署与IP配置.md" },
+  "阿里云": { cat: "部署平台", body:
+    "<p><b>是什么：</b>国内最大云厂商，ECS/轻量服务器/ RDS 一应俱全。</p>" +
+    "<p><b>适合：</b>国内访问、需要备案、学生认证有优惠。</p>" +
+    "<p><b>注意：</b>国内服务器必须 ICP 备案（约 2-3 周）。</p>",
+    file: "资料库/云部署与IP配置.md" },
+  "AWS": { cat: "部署平台", body:
+    "<p><b>是什么：</b>国际最大云厂商，生态最全，学云原生的标准教材。</p>" +
+    "<p><b>适合：</b>出海项目、学习大厂架构。</p>" +
+    "<p><b>注意：</b>账单复杂，新手容易超支；国内访问慢。</p>",
+    file: "资料库/云部署与IP配置.md" },
+  "Railway/Render": { cat: "部署平台", body:
+    "<p><b>是什么：</b>前后端+数据库一键托管，配置比 Vercel 自由，比 ECS 简单。</p>" +
+    "<p><b>适合：</b>个人全栈项目、Bot、小 SaaS。</p>" +
+    "<p><b>注意：</b>免费额度很小，正式项目要付费。</p>",
+    file: "资料库/云部署与IP配置.md" },
+  "自建服务器": { cat: "部署平台", body:
+    "<p><b>是什么：</b>买 VPS（阿里云轻量/Vultr/Hetzner）自己装 Nginx、Docker。</p>" +
+    "<p><b>适合：</b>最自由、学习运维、预算敏感。</p>" +
+    "<p><b>注意：</b>安全组只开 80/443，22 限自己 IP，数据库端口绝不公网开放。</p>",
+    file: "资料库/云部署与IP配置.md" },
+  "Docker": { cat: "容器化", body:
+    "<p><b>是什么：</b>把应用和依赖打包成镜像，一次构建到处运行。</p>" +
+    "<p><b>适合：</b>团队项目、多服务部署、CI/CD。</p>" +
+    "<p><b>注意：</b>初学要写 Dockerfile 和 docker-compose.yml。</p>",
+    file: "资料库/云部署与IP配置.md" },
+  "Kubernetes": { cat: "容器化", body:
+    "<p><b>是什么：</b>容器编排集群，自动扩缩容、自愈、滚动更新。</p>" +
+    "<p><b>适合：</b>大规模微服务、高可用生产。</p>" +
+    "<p><b>注意：</b>学习曲线极陡，小项目用它是大炮打蚊子。</p>",
+    file: null },
+  "GitHub Actions": { cat: "CI/CD", body:
+    "<p><b>是什么：</b>推代码自动跑测试、构建、部署，YAML 配置，免费额度大。</p>" +
+    "<p><b>适合：</b>绝大多数 GitHub 项目。</p>" +
+    "<p><b>注意：</b>secrets 要配在仓库设置里，别写进代码。</p>",
+    file: "资料库/云部署与IP配置.md" },
+  "GitLab CI": { cat: "CI/CD", body:
+    "<p><b>是什么：</b>GitLab 自带 CI，.gitlab-ci.yml 配置。</p>" +
+    "<p><b>适合：</b>自托管仓库、企业内网。</p>" +
+    "<p><b>注意：</b>要自己跑 Runner。</p>",
+    file: null },
+  "手动部署": { cat: "CI/CD", body:
+    "<p><b>是什么：</b>本地 build 后 scp 上传到服务器，或手动点平台上传。</p>" +
+    "<p><b>适合：</b>小项目、作业、不想配流水线。</p>" +
+    "<p><b>注意：</b>项目一大就会痛，迟早要上 CI/CD。</p>",
+    file: null }
+};
+
+/* ================= 状态 ================= */
+function freshPicks() {
+  var p = [];
+  for (var i = 0; i < STEPS.length; i++) {
+    var g = {};
+    STEPS[i].groups.forEach(function (gr) { g[gr.key] = gr.multi ? [] : null; });
+    p.push(g);
+  }
+  return p;
+}
+var state = { step: 0, picks: freshPicks() };
+
+function decodeHash() {
+  var m = location.hash.match(/#s=(.+)/);
+  if (!m) return;
+  try {
+    var p = JSON.parse(decodeURIComponent(escape(atob(m[1]))));
+    if (p && p.length === 5) {
+      p.forEach(function (g, i) {
+        STEPS[i].groups.forEach(function (gr) {
+          if (g && g[gr.key] !== undefined) state.picks[i][gr.key] = g[gr.key];
+        });
+      });
+    }
+  } catch (e) {}
+}
+function encodeHash() {
+  try {
+    var data = btoa(unescape(encodeURIComponent(JSON.stringify(state.picks))));
+    history.replaceState(null, "", "#s=" + data);
+  } catch (e) {}
+}
+function save() {
+  try { localStorage.setItem("fullstack-map", JSON.stringify(state.picks)); } catch (e) {}
+  encodeHash();
+}
+try {
+  decodeHash();
+  if (location.hash.length < 3) {
+    var s = localStorage.getItem("fullstack-map");
+    if (s) { var p = JSON.parse(s); if (p && p.length === 5) state.picks = p; }
+  }
+} catch (e) {}
+
+/* ================= 工具 ================= */
+function el(tag, cls, html) {
+  var d = document.createElement(tag || "div");
+  if (cls) d.className = cls;
+  if (html !== undefined) d.innerHTML = html;
+  return d;
+}
+function groupCount(i) {
+  var s = STEPS[i], done = 0;
+  s.groups.forEach(function (g) {
+    var v = state.picks[i][g.key];
+    if (g.multi ? v.length > 0 : v) done++;
+  });
+  return [done, s.groups.length];
+}
+function currentStepComplete(i) { return groupCount(i)[0] === groupCount(i)[1]; }
+
+/* 详情弹窗 */
+function openDetail(name) {
+  var d = DETAILS[name];
+  if (!d) return;
+  var modal = document.getElementById("modal");
+  modal.innerHTML =
+    "<h2>" + name + "</h2>" +
+    '<div class="modal-cat">' + d.cat + "</div>" +
+    '<div class="modal-body">' + d.body + "</div>" +
+    (d.file ? '<div class="modal-file">资料库完整扩展：<code>' + d.file + "</code>（在你的知识库目录下）</div>" : "") +
+    '<button class="modal-close" id="modalClose">关闭</button>';
+  document.getElementById("modalMask").classList.add("open");
+  document.getElementById("modalClose").onclick = closeModal;
+}
+function closeModal() { document.getElementById("modalMask").classList.remove("open"); }
+document.getElementById("modalMask").addEventListener("click", function (e) {
+  if (e.target === this) closeModal();
+});
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape") closeModal();
+});
+
+/* ================= 渲染 ================= */
+function renderBar() {
+  var bar = document.getElementById("stepsBar");
+  bar.innerHTML = "";
+  STEPS.forEach(function (s, i) {
+    var pill = el("span", "step-pill" + (i === state.step ? " active" : (currentStepComplete(i) ? " done" : "")));
+    pill.textContent = (i + 1) + " " + s.title.split("·")[1].trim();
+    pill.onclick = function () { state.step = i; render(); };
+    bar.appendChild(pill);
+  });
+  bar.appendChild(el("span", "page-count", "第 " + (state.step + 1 > 5 ? 5 : state.step + 1) + " / 5 步"));
+}
+
+function renderStep() {
+  var i = state.step;
+  var s = STEPS[i];
+  var main = document.getElementById("main");
+  main.innerHTML = "";
+
+  var wrap = el("div", "card-wrap");
+  var head = el("div", "step-head");
+  head.appendChild(el("div", null, "<div class='step-title'>" + s.title + "</div>"));
+  var recBtn = el("button", "rec-btn", "采用新手推荐 ↓");
+  recBtn.onclick = function () {
+    var rec = RECOMMEND[i];
+    Object.keys(rec).forEach(function (k) { state.picks[i][k] = rec[k]; });
+    save(); render();
+  };
+  head.appendChild(recBtn);
+  wrap.appendChild(head);
+  wrap.appendChild(el("div", "step-sub", s.sub));
+
+  s.groups.forEach(function (g) {
+    var options = g.options;
+    if (g.dependsOn === "lang") {
+      var lang = state.picks[i].lang;
+      options = lang && FW_BY_LANG[lang] ? FW_BY_LANG[lang] :
+        [{ v: "（请先选择后端语言）", d: "选完语言后这里会显示对应框架", disabled: 1 }];
+    }
+
+    var groupEl = el("div", "group");
+    var gl = el("div", "group-label",
+      "<span>" + g.label + "</span>" + (g.multi ? '<span class="must">*</span>' : "") +
+      '<span class="count">' + (g.multi ? "已选 " + state.picks[i][g.key].length + " 项" : "") + "</span>");
+    groupEl.appendChild(gl);
+
+    var grid = el("div", "grid");
+    options.forEach(function (op) {
+      var picked = g.multi ?
+        (state.picks[i][g.key].indexOf(op.v) >= 0) :
+        (state.picks[i][g.key] === op.v);
+      var o = el("div", "opt" + (picked ? " selected" : "") + (op.disabled ? " disabled" : ""));
+      var tags = (op.tags || []).map(function (t) { return '<span class="opt-tag">' + t + "</span>"; }).join("");
+      var hasDetail = DETAILS[op.v] ? '<button class="info-btn" title="查看详细知识">i</button>' : "";
+      o.innerHTML = '<div class="opt-head"><span class="opt-name">' + op.v + "</span>" +
+        '<div class="opt-actions">' +
+        (hasDetail ? '<button class="info-btn" title="查看详细知识">i</button>' : "") +
+        '<span class="check">✓</span>' +
+        "</div></div>" +
+        '<span class="opt-desc">' + op.d + "</span>" +
+        (tags ? '<div class="opt-tags">' + tags + "</div>" : "");
+
+      // 点 i 按钮不触发选中
+      var infoBtn = o.querySelector(".info-btn");
+      if (infoBtn) infoBtn.onclick = function (e) { e.stopPropagation(); openDetail(op.v); };
+
+      o.onclick = function () {
+        if (op.disabled) return;
+        if (g.multi) {
+          var arr = state.picks[i][g.key];
+          var idx = arr.indexOf(op.v);
+          if (idx >= 0) arr.splice(idx, 1); else arr.push(op.v);
+        } else {
+          state.picks[i][g.key] = (state.picks[i][g.key] === op.v) ? null : op.v;
+          if (g.key === "lang" && state.picks[i].fw) state.picks[i].fw = null;
+        }
+        save(); render();
+      };
+      grid.appendChild(o);
+    });
+    groupEl.appendChild(grid);
+    wrap.appendChild(groupEl);
+  });
+
+  main.appendChild(wrap);
+}
+
+function buildActions() {
+  var a = [], f = state.picks[0], b = state.picks[1], d = state.picks[2], o = state.picks[4];
+  if (f.meta === "Next.js") a.push("运行 <code>npx create-next-app@latest</code> 初始化项目");
+  else if (f.meta === "Nuxt") a.push("运行 <code>npx nuxi init</code> 初始化 Nuxt 项目");
+  else if (f.meta === "Astro") a.push("运行 <code>npm create astro@latest</code> 初始化内容站");
+  else a.push("运行 <code>npm create vite@latest</code> 初始化前端项目");
+  if (b.fw === "Spring Boot") a.push("去 Spring Initializr 生成项目，先写第一个 GET 接口");
+  else if (b.fw === "FastAPI") a.push("<code>pip install fastapi uvicorn</code>，跑通 hello world");
+  else if (b.fw === "NestJS") a.push("<code>npx @nestjs/cli new</code> 初始化，写第一个 controller");
+  else if (b.fw === "Express") a.push("<code>npm init -y &amp;&amp; npm i express</code>，写第一个路由");
+  else if (b.fw === "Gin") a.push("<code>go mod init</code> 后写第一个 GET 路由");
+  if (d.main === "MySQL") a.push("本地装好 MySQL，建库并跑通增删改查");
+  else if (d.main === "PostgreSQL") a.push("本地装 PostgreSQL，用 DBeaver 连一下");
+  else if (d.main === "MongoDB") a.push("本地启动 MongoDB，用 Compass 可视化操作");
+  else a.push("直接在代码里创建 SQLite 文件，零配置连库");
+  a.push("用户密码必须加密存储（bcrypt/argon2），绝不存明文");
+  if (o.platform === "Vercel") a.push("把 Git 仓库连到 Vercel，推送后自动部署");
+  else if (o.platform === "阿里云") a.push("开 ECS，配好域名与 HTTPS 证书（需备案）");
+  else a.push("用 Docker 打包应用，在平台一键部署");
+  return a.slice(0, 6);
+}
+
+function renderSummary() {
+  var main = document.getElementById("main");
+  main.innerHTML = "";
+  var wrap = el("div", "card-wrap");
+  wrap.appendChild(el("div", "step-title", "你的全栈技术栈"));
+  wrap.appendChild(el("div", "step-sub", "可返回修改，也可点每项旁的 i 查看详细知识。"));
+
+  var flow = el("div", "flow");
+  var flowLabels = ["前端", "后端", "数据库", "安全", "部署"];
+  var mainKey = [["framework"], ["lang", "fw"], ["main", "cache"], ["auth"], ["platform"]];
+  for (var i = 0; i < 5; i++) {
+    var node = el("div", "flow-node");
+    var v1 = state.picks[i][mainKey[i][0]] || "—";
+    var v2 = mainKey[i][1] ? (state.picks[i][mainKey[i][1]] || "") : "";
+    node.innerHTML = '<div class="fn-label">' + flowLabels[i] + '</div>' +
+      '<div class="fn-value">' + v1 + '</div>' +
+      (v2 ? '<div class="fn-sub">' + v2 + "</div>" : "");
+    flow.appendChild(node);
+    if (i < 4) flow.appendChild(el("div", "flow-arrow", "→"));
+  }
+  wrap.appendChild(flow);
+
+  var groupNames = {
+    framework: "UI 框架", meta: "元框架", ui: "UI 方案",
+    lang: "语言", fw: "框架", api: "API 协议",
+    main: "主库", cache: "缓存", orm: "数据层",
+    auth: "认证", policies: "安全策略",
+    platform: "平台", container: "容器化", cicd: "CI/CD"
+  };
+  for (var s = 0; s < STEPS.length; s++) {
+    var sec = el("div", "sum-section");
+    var head = el("div", "sum-head");
+    head.innerHTML = "<h4>" + STEPS[s].title.split("·")[1].trim() + "</h4>";
+    var edit = el("button", "sum-edit", "修改");
+    edit.onclick = (function (idx) { return function () { state.step = idx; render(); }; })(s);
+    head.appendChild(edit);
+    sec.appendChild(head);
+
+    STEPS[s].groups.forEach(function (g) {
+      var val = state.picks[s][g.key];
+      var row = el("div", "sum-row");
+      row.innerHTML = '<span class="sum-key">' + groupNames[g.key] + '</span><span class="sum-val"></span>';
+      row.querySelector(".sum-val").textContent = g.multi ? (val.length ? val.join("、") : "（未选）") : (val || "（未选）");
+      // 详情链接
+      if (!g.multi && val && DETAILS[val]) {
+        var info = el("span", "sum-info", "详情");
+        info.onclick = (function (v) { return function () { openDetail(v); }; })(val);
+        row.appendChild(info);
+      }
+      sec.appendChild(row);
+    });
+    wrap.appendChild(sec);
+  }
+
+  var actBox = el("div", "actions");
+  actBox.appendChild(el("h4", null, "下一步行动（按你的技术栈）"));
+  var ol = el("ol");
+  buildActions().forEach(function (html) {
+    var li = document.createElement("li");
+    li.innerHTML = html;
+    ol.appendChild(li);
+  });
+  actBox.appendChild(ol);
+  wrap.appendChild(actBox);
+
+  var toolbox = el("div", "toolbox");
+  var copyBtn = el("button", "btn primary", "复制技术栈");
+  copyBtn.onclick = function () {
+    var text = buildStackText();
+    var done = function () { copyBtn.textContent = "已复制 ✓"; setTimeout(function () { copyBtn.textContent = "复制技术栈"; }, 1500); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(function () { fallbackCopy(text); done(); });
+    } else { fallbackCopy(text); done(); }
+  };
+  function fallbackCopy(t) {
+    var ta = document.createElement("textarea");
+    ta.value = t; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+  var mdBtn = el("button", "btn", "导出 Markdown");
+  mdBtn.onclick = function () {
+    var text = "# 我的全栈技术栈\n\n" + buildStackText() + "\n\n## 下一步行动\n" +
+      buildActions().map(function (h) { return "- " + h.replace(/<[^>]+>/g, ""); }).join("\n") + "\n";
+    var blob = new Blob([text], { type: "text/markdown;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "my-fullstack-stack.md";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+  var resetBtn = el("button", "btn", "重新选择");
+  resetBtn.onclick = function () {
+    if (!confirm("清空所有选择，重新开始？")) return;
+    state.step = 0;
+    state.picks = freshPicks();
+    save(); render();
+  };
+  toolbox.appendChild(copyBtn); toolbox.appendChild(mdBtn); toolbox.appendChild(resetBtn);
+  wrap.appendChild(toolbox);
+
+  main.appendChild(wrap);
+}
+
+function buildStackText() {
+  var lines = ["我的全栈技术栈", ""];
+  var titles = ["前端开发", "后端开发", "数据库", "安全与认证", "部署与云服务"];
+  var keys = [["framework", "meta", "ui"], ["lang", "fw", "api"], ["main", "cache", "orm"], ["auth", "policies"], ["platform", "container", "cicd"]];
+  for (var i = 0; i < 5; i++) {
+    lines.push("【" + titles[i] + "】");
+    keys[i].forEach(function (k) {
+      var v = state.picks[i][k];
+      lines.push("  - " + (Array.isArray(v) ? (v.join("、") || "（未选）") : (v || "（未选）")));
+    });
+    lines.push("");
+  }
+  return lines.join("\n");
+}
+
+function renderNav() {
+  var nav = document.getElementById("nav");
+  nav.innerHTML = "";
+  if (state.step < STEPS.length) {
+    var prev = el("button", "btn", "← 上一步");
+    prev.onclick = function () { if (state.step > 0) state.step--; render(); };
+    if (state.step === 0) prev.style.visibility = "hidden";
+    var tip = el("span", "kbd-tip", '<kbd>←</kbd> <kbd>→</kbd> 切换步骤');
+    var next = el("button", "btn primary", "下一步 →");
+    if (!currentStepComplete(state.step)) next.disabled = true;
+    next.onclick = function () { if (currentStepComplete(state.step)) { state.step++; save(); render(); } };
+    nav.appendChild(prev); nav.appendChild(tip); nav.appendChild(next);
+  } else {
+    var back = el("button", "btn", "← 返回第 1 步");
+    back.onclick = function () { state.step = 0; render(); };
+    nav.appendChild(back);
+  }
+}
+
+/* 全局搜索 */
+var searchInput = document.getElementById("searchInput");
+var searchResults = document.getElementById("searchResults");
+searchInput.addEventListener("input", function () {
+  var q = this.value.trim().toLowerCase();
+  if (!q) { searchResults.classList.remove("open"); searchResults.innerHTML = ""; return; }
+  var hits = [];
+  Object.keys(DETAILS).forEach(function (name) {
+    var d = DETAILS[name];
+    var hay = (name + " " + d.cat + " " + d.body).toLowerCase();
+    if (name.toLowerCase().indexOf(q) >= 0 || hay.indexOf(q) >= 0) {
+      hits.push({ name: name, cat: d.cat });
+    }
+  });
+  if (!hits.length) {
+    searchResults.innerHTML = '<div class="sr-group">没有匹配的技术</div>';
+  } else {
+    searchResults.innerHTML = hits.slice(0, 20).map(function (h) {
+      return '<div class="sr-item" data-name="' + h.name + '"><span>' + h.name + '</span><span class="sr-cat">' + h.cat + "</span></div>";
+    }).join("");
+    searchResults.querySelectorAll(".sr-item").forEach(function (item) {
+      item.onclick = function () {
+        openDetail(this.getAttribute("data-name"));
+        searchResults.classList.remove("open");
+        searchInput.value = "";
+      };
+    });
+  }
+  searchResults.classList.add("open");
+});
+document.addEventListener("click", function (e) {
+  if (!e.target.closest(".search-box")) searchResults.classList.remove("open");
+});
+
+document.addEventListener("keydown", function (e) {
+  if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+  if (e.key === "ArrowRight" && state.step < STEPS.length && currentStepComplete(state.step)) { state.step++; save(); render(); }
+  else if (e.key === "ArrowLeft" && state.step > 0) { state.step--; render(); }
+});
+
+function render() {
+  renderBar();
+  if (state.step >= STEPS.length) renderSummary(); else renderStep();
+  renderNav();
+}
+render();
+</script>
+</body>
+</html>

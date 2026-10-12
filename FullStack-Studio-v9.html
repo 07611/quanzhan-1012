@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FullStack Studio · AI全栈开发平台</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f7f7f8;--surface:#ffffff;--surface2:#fafafa;--border:#eaeaec;--border2:#dddde0;
+  --text:#111827;--text2:#6b7280;--text3:#9ca3af;
+  --accent:#6d5dfc;--accent2:#8b7cff;--accent-light:rgba(109,93,252,.07);--accent-border:rgba(109,93,252,.18);
+  --green:#10b981;--green-light:rgba(16,185,129,.07);
+  --orange:#f59e0b;--orange-light:rgba(245,158,11,.07);
+  --red:#ef4444;--red-light:rgba(239,68,68,.07);
+  --blue:#3b82f6;--blue-light:rgba(59,130,246,.07);
+  --radius:10px;--radius-lg:14px;--radius-xl:18px;
+  --mono:'JetBrains Mono',monospace;
+  --font:'Plus Jakarta Sans','Noto Sans SC','Inter',system-ui,sans-serif;
+  --shadow:0 1px 3px rgba(0,0,0,.04),0 1px 2px rgba(0,0,0,.03);
+  --shadow-lg:0 4px 12px rgba(0,0,0,.06),0 2px 4px rgba(0,0,0,.04);
+  --shadow-xl:0 10px 32px rgba(0,0,0,.08);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;font-size:14px;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:3px}
+
+/* ========== TOPNAV ========== */
+.topnav{background:rgba(255,255,255,.88);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.topnav-inner{max-width:1440px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:52px;padding:0 24px}
+.topnav-logo{font-size:17px;font-weight:800;letter-spacing:-.3px;display:flex;align-items:center;gap:7px;cursor:default}
+.topnav-logo .logo-icon{width:26px;height:26px;background:linear-gradient(135deg,var(--accent),#a78bfa);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:900}
+.topnav-logo .logo-text{background:linear-gradient(135deg,var(--accent),#9d8bf5);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.topnav-logo .ver{font-size:9px;background:var(--accent-light);color:var(--accent);padding:1px 5px;border-radius:4px;font-weight:700;-webkit-text-fill-color:var(--accent);margin-left:2px}
+.topnav-tabs{display:flex;gap:2px;background:var(--bg);border-radius:10px;padding:3px}
+.tab-btn{padding:7px 14px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:500;border:none;background:transparent;color:var(--text2);transition:all .2s;font-family:inherit;display:flex;align-items:center;gap:5px}
+.tab-btn:hover{color:var(--text);background:var(--surface)}
+.tab-btn.active{background:var(--surface);color:var(--accent);font-weight:600;box-shadow:var(--shadow)}
+.topnav-right{display:flex;align-items:center;gap:8px;position:relative}
+.time-badge{font-size:11px;color:var(--text3);font-family:var(--mono);padding:4px 8px;background:var(--bg);border-radius:6px}
+.model-picker-btn{display:flex;align-items:center;gap:5px;padding:5px 10px 5px 8px;border-radius:8px;font-size:12px;background:var(--surface);border:1px solid var(--border);color:var(--text);cursor:pointer;font-family:inherit;transition:all .15s}
+.model-picker-btn:hover{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-light)}
+.model-picker-btn .mp-emoji{font-size:15px}
+.model-picker-btn .mp-name{font-weight:600}
+.model-picker-btn .mp-arrow{font-size:9px;color:var(--text3);transition:transform .2s;margin-left:2px}
+.model-picker-btn.open .mp-arrow{transform:rotate(180deg)}
+.model-picker-dropdown{display:none;position:absolute;top:46px;right:0;width:300px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);max-height:420px;overflow-y:auto;z-index:300;box-shadow:var(--shadow-xl)}
+.model-picker-dropdown.show{display:block;animation:dropIn .2s ease}
+@keyframes dropIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.mp-header{font-size:11px;font-weight:700;padding:12px 14px 6px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-family:var(--mono)}
+.mp-item{display:flex;align-items:center;gap:10px;padding:8px 14px;cursor:pointer;transition:background .12s;margin:1px 6px;border-radius:8px}
+.mp-item:hover{background:var(--bg)}
+.mp-item.active{background:var(--accent-light);outline:1px solid var(--accent-border)}
+.mp-item-icon{font-size:15px;width:22px;text-align:center}
+.mp-item-name{font-size:12px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:5px}
+.mp-item-badge{font-size:8px;padding:1px 5px;border-radius:3px;font-family:var(--mono);font-weight:600}
+.mp-item-badge.free{background:var(--green-light);color:var(--green)}
+.mp-item-badge.hot{background:var(--red-light);color:var(--red)}
+.mp-item-badge.new{background:var(--blue-light);color:var(--blue)}
+.mp-item-badge.key{background:var(--orange-light);color:var(--orange)}
+.model-picker-overlay{display:none;position:fixed;inset:0;z-index:250}
+.model-picker-overlay.show{display:block}
+.apikey-btn{padding:5px 10px;border-radius:8px;font-size:12px;background:var(--surface);border:1px solid var(--border);color:var(--text2);cursor:pointer;font-family:inherit;transition:all .15s}
+.apikey-btn:hover{border-color:var(--accent);color:var(--accent)}
+.apikey-btn.has-key{border-color:var(--green);color:var(--green)}
+.tab-content{display:none}.tab-content.active{display:block}
+
+/* ========== SIDEBAR ========== */
+.main-layout{display:flex;min-height:calc(100vh - 52px)}
+.sidebar{width:280px;background:var(--surface);border-right:1px solid var(--border);position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;flex-shrink:0}
+.sidebar-header{padding:14px 16px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.sidebar-header h3{font-size:13px;font-weight:700;display:flex;align-items:center;gap:5px}
+.sidebar-section{padding:10px 16px;border-bottom:1px solid var(--border)}
+.sidebar-section-title{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;font-family:var(--mono)}
+.sidebar-task{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;cursor:pointer;transition:all .12s;font-size:13px;color:var(--text2)}
+.sidebar-task:hover{background:var(--bg)}
+.sidebar-task.active{background:var(--accent-light);color:var(--accent);font-weight:600}
+.sidebar-task-icon{font-size:14px;width:18px;text-align:center}
+.sidebar-task-meta{margin-left:auto;font-size:10px;color:var(--text3);font-family:var(--mono)}
+.sidebar-task-badge{font-size:9px;padding:1px 5px;border-radius:3px;font-weight:600;background:var(--green-light);color:var(--green);font-family:var(--mono)}
+.sidebar-agent{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;transition:background .12s;font-size:12px;color:var(--text2)}
+.sidebar-agent:hover{background:var(--bg)}
+.sidebar-agent-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.sidebar-proj-create{display:flex;gap:6px;padding:8px 16px}
+.sidebar-proj-create input{flex:1;padding:7px 10px;border-radius:7px;font-size:12px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:inherit;outline:none;transition:border-color .15s}
+.sidebar-proj-create input:focus{border-color:var(--accent)}
+.sidebar-proj-create button{padding:7px 12px;border-radius:7px;font-size:12px;background:var(--accent);color:#fff;border:none;cursor:pointer;font-weight:600;font-family:inherit;transition:opacity .15s}
+.sidebar-proj-create button:hover{opacity:.85}
+.sidebar-proj-tree-wrap{display:none;padding:0 16px 10px}
+.sidebar-proj-tree{font-family:var(--mono);font-size:10px;line-height:1.65;color:var(--text2);max-height:200px;overflow-y:auto;background:var(--bg);border-radius:8px;padding:10px 12px;border:1px solid var(--border)}
+.sidebar-proj-tree .fl{color:var(--blue);font-weight:600}
+.sidebar-check-btn{margin:6px 16px 10px;padding:8px;border-radius:8px;font-size:12px;background:var(--accent);color:#fff;border:none;cursor:pointer;font-weight:600;font-family:inherit;width:calc(100% - 32px);transition:opacity .15s}
+.sidebar-check-btn:hover{opacity:.85}
+.sidebar-check-results{padding:0 16px 12px;max-height:220px;overflow-y:auto}
+.sidebar-check-item{display:flex;align-items:flex-start;gap:5px;padding:5px 8px;border-radius:6px;margin-bottom:3px;font-size:11px;line-height:1.4}
+.sidebar-check-item.pass{background:var(--green-light);color:var(--green)}
+.sidebar-check-item.warn{background:var(--orange-light);color:var(--orange)}
+.sidebar-check-item.fail{background:var(--red-light);color:var(--red)}
+
+/* ========== MAIN CONTENT ========== */
+.main-content{flex:1;min-width:0;overflow-x:hidden}
+.container{max-width:1200px;margin:0 auto;padding:24px 28px 60px}
+
+/* ========== SECTION HEADERS ========== */
+.section-header{margin-bottom:20px}
+.section-header h2{font-size:20px;font-weight:800;letter-spacing:-.3px;margin-bottom:3px}
+.section-header p{font-size:13px;color:var(--text2)}
+.section-header .count{font-size:11px;color:var(--text3);font-family:var(--mono);margin-left:8px}
+
+/* ========== DESIGN DIRECTION CARDS ========== */
+.design-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.design-card{border-radius:var(--radius-lg);overflow:hidden;background:var(--surface);border:1.5px solid var(--border);cursor:pointer;transition:all .25s;position:relative}
+.design-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--border2)}
+.design-card.selected{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light),var(--shadow-lg)}
+.design-card.selected .design-card-check{display:flex}
+.design-card-check{display:none;position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;align-items:center;justify-content:center;font-size:12px;font-weight:700;z-index:2}
+.design-preview{height:140px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:14px}
+/* Preview mockups */
+.dp-minimal{background:#fff;border:1px solid #e5e7eb}
+.dp-minimal .dp-bar{height:5px;background:#f3f4f6;border-bottom:1px solid #e5e7eb}
+.dp-minimal .dp-content{flex:1;display:flex;flex-direction:column;padding:10px;gap:6px}
+.dp-minimal .dp-block{background:#f3f4f6;border-radius:3px}
+.dp-minimal .dp-block.w60{width:60%;height:6px}
+.dp-minimal .dp-block.w80{width:80%;height:5px}
+.dp-minimal .dp-block.w40{width:40%;height:16px}
+.dp-minimal .dp-btn{width:50px;height:14px;background:#111;border-radius:3px;margin-top:auto}
+.dp-glass{background:linear-gradient(135deg,#667eea,#764ba2)}
+.dp-glass .dp-card{background:rgba(255,255,255,.15);backdrop-filter:blur(8px);border-radius:8px;padding:10px;margin:6px;border:1px solid rgba(255,255,255,.18)}
+.dp-glass .dp-line{height:5px;background:rgba(255,255,255,.25);border-radius:3px;margin-bottom:5px}
+.dp-glass .dp-line.w70{width:70%}.dp-glass .dp-line.w50{width:50%}
+.dp-glass .dp-glow{width:24px;height:24px;background:rgba(255,255,255,.25);border-radius:50%;position:absolute;top:10px;right:16px;filter:blur(6px)}
+.dp-dark{background:#0d1117;border:1px solid #30363d}
+.dp-dark .dp-term{font-family:var(--mono);font-size:8px;color:#3fb950;padding:8px}
+.dp-dark .dp-term span{color:#a78bfa}.dp-dark .dp-term span.b{color:#f85149}
+.dp-warm{background:#fff8f0}
+.dp-warm .dp-illustration{width:40px;height:40px;background:#ff6b35;border-radius:50%;margin:6px auto 0}
+.dp-warm .dp-wtext{height:5px;background:#4a3728;border-radius:3px;margin:5px 16px;opacity:.12}
+.dp-warm .dp-wtext.w60{width:60%;margin-left:auto;margin-right:auto}
+.dp-corp{background:#f8fafc;border:1px solid #e2e8f0}
+.dp-corp .dp-sidebar-mock{width:18px;height:70px;background:#1e293b;position:absolute;left:6px;top:10px;border-radius:3px}
+.dp-corp .dp-table-mock{width:85%;margin:8px auto;border-collapse:collapse}
+.dp-corp .dp-table-mock td{height:5px;background:#3b82f6;border-radius:2px;padding:2px 5px}
+.dp-corp .dp-table-mock td:nth-child(2){background:#e2e8f0}
+.dp-corp .dp-table-mock td:nth-child(3){background:#e2e8f0}
+.dp-creative{background:#fefce8;position:relative}
+.dp-creative .dp-blob1{width:50px;height:50px;background:#ec4899;border-radius:50%;position:absolute;top:8px;left:14px;opacity:.7}
+.dp-creative .dp-blob2{width:32px;height:32px;background:#3b82f6;border-radius:6px;position:absolute;bottom:10px;right:16px;transform:rotate(15deg);opacity:.7}
+.dp-creative .dp-blob3{width:20px;height:20px;background:#f59e0b;border-radius:50%;position:absolute;top:16px;right:24px;opacity:.7}
+.dp-neumorph{background:#e0e5ec}
+.dp-neumorph .dp-neu{width:42px;height:16px;background:#e0e5ec;border-radius:8px;position:relative;box-shadow:2px 2px 5px #b8bec6,-2px -2px 5px #fff;margin:6px auto}
+.dp-neumorph .dp-neu2{width:58px;height:12px;background:#e0e5ec;border-radius:6px;box-shadow:2px 2px 4px #b8bec6,-2px -2px 4px #fff;margin:5px auto}
+.dp-japanese{background:#f5f0e8}
+.dp-japanese .dp-zen{width:24px;height:24px;border:2px solid #8b7355;border-radius:50%;margin:10px auto 4px}
+.dp-japanese .dp-vtext{writing-mode:vertical-rl;font-size:7px;color:#4a4035;letter-spacing:2px;position:absolute;right:12px;top:10px}
+.design-card-info{padding:14px 16px}
+.design-card-title{font-size:15px;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:5px}
+.design-card-desc{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:8px}
+.design-card-colors{display:flex;gap:5px;margin-bottom:8px}
+.design-card-colors span{width:22px;height:22px;border-radius:6px;border:1px solid rgba(0,0,0,.06)}
+.design-card-tags{display:flex;gap:5px;flex-wrap:wrap}
+.design-card-tags span{font-size:10px;padding:2px 7px;border-radius:5px;background:var(--bg);color:var(--text2);font-weight:500}
+
+/* ========== TECH SELECTOR ========== */
+.ts-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;margin-bottom:20px}
+.ts-stage-title{font-size:18px;font-weight:800;margin-bottom:3px;letter-spacing:-.2px}
+.ts-stage-sub{font-size:12px;color:var(--text2);margin-bottom:16px}
+.ts-section{background:var(--bg);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.ts-section-head{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid var(--border)}
+.ts-section-label{font-size:13px;font-weight:600}
+.ts-section-hint{font-size:10px;padding:2px 5px;border-radius:3px;background:var(--surface);color:var(--text3);font-family:var(--mono)}
+.ts-search{display:flex;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:3px 7px}
+.ts-search input{border:none;outline:none;background:transparent;font-size:11px;width:90px;font-family:inherit;color:var(--text)}
+.ts-options{display:flex;flex-wrap:wrap;gap:8px;padding:12px 14px}
+.ts-option{flex:1 1 200px;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;transition:all .15s;position:relative}
+.ts-option:hover{border-color:var(--accent);background:var(--accent-light)}
+.ts-option.selected{border-color:var(--accent);background:var(--accent-light)}
+.ts-option.selected::after{content:'✓';position:absolute;top:6px;right:8px;font-size:11px;font-weight:800;color:var(--accent)}
+.ts-option.hidden{display:none}
+.ts-opt-top{display:flex;align-items:center;gap:5px;margin-bottom:3px;flex-wrap:wrap}
+.ts-opt-emoji{font-size:14px}
+.ts-opt-name{font-size:12px;font-weight:700}
+.ts-opt-stars{margin-left:auto;font-size:9px;font-weight:700;color:var(--orange);font-family:var(--mono);background:var(--orange-light);padding:1px 5px;border-radius:3px}
+.ts-opt-tags{font-size:10px;color:var(--accent);font-weight:500;margin-bottom:2px}
+.ts-opt-desc{font-size:11px;color:var(--text2);line-height:1.4}
+.ts-tag{font-size:8px;padding:1px 4px;border-radius:3px;font-family:var(--mono);font-weight:600;margin-left:2px}
+.ts-tag.hot{background:var(--red-light);color:var(--red)}
+.ts-tag.rising{background:var(--orange-light);color:var(--orange)}
+.ts-tag.new{background:var(--green-light);color:var(--green)}
+
+/* ========== PROMPT GENERATOR ========== */
+.prompt-gen-panel{background:linear-gradient(135deg,#6d5dfc,#8b7cff);border-radius:var(--radius-lg);padding:24px;color:#fff;margin-bottom:20px;position:relative;overflow:hidden}
+.prompt-gen-panel::before{content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:rgba(255,255,255,.08);border-radius:50%}
+.prompt-gen-panel::after{content:'';position:absolute;bottom:-30px;left:30%;width:80px;height:80px;background:rgba(255,255,255,.05);border-radius:50%}
+.prompt-gen-panel h3{font-size:18px;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:7px;position:relative}
+.prompt-gen-panel .sub{font-size:12px;opacity:.75;margin-bottom:16px;position:relative}
+.prompt-gen-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;position:relative}
+.pg-btn{padding:8px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all .15s;display:flex;align-items:center;gap:5px;position:relative}
+.pg-btn-primary{background:#fff;color:var(--accent)}
+.pg-btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.pg-btn-secondary{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff}
+.pg-btn-secondary:hover{background:rgba(255,255,255,.2)}
+.prompt-output{background:rgba(0,0,0,.12);border-radius:10px;padding:14px;font-family:var(--mono);font-size:11px;line-height:1.6;max-height:320px;overflow-y:auto;white-space:pre-wrap;display:none;position:relative;backdrop-filter:blur(6px)}
+.prompt-output.show{display:block}
+
+/* ========== CHAT ========== */
+.chat-layout{display:flex;gap:16px;min-height:560px}
+.chat-main{flex:1;display:flex;flex-direction:column;background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);overflow:hidden}
+.chat-header{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.chat-header-dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
+.chat-header-title{font-size:13px;font-weight:700;flex:1}
+.chat-header-model{font-size:10px;background:var(--bg);padding:2px 7px;border-radius:5px;font-family:var(--mono);color:var(--text2)}
+.chat-clear-btn{padding:3px 8px;border-radius:5px;font-size:11px;background:var(--bg);border:1px solid var(--border);color:var(--text3);cursor:pointer;font-family:inherit}
+.chat-clear-btn:hover{background:var(--red-light);color:var(--red);border-color:var(--red)}
+.chat-messages{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px;min-height:380px}
+.msg{display:flex;gap:10px;max-width:82%;animation:msgIn .25s ease}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg-avatar{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.msg-avatar.ai{background:var(--accent-light);border:1px solid var(--accent-border)}
+.msg-avatar.user{background:var(--bg)}
+.msg-body{flex:1;min-width:0}
+.msg-name{font-size:10px;font-weight:600;color:var(--text3);margin-bottom:3px;font-family:var(--mono)}
+.msg-text{font-size:13px;line-height:1.7;color:var(--text);white-space:pre-wrap;word-break:break-word}
+.msg.user{flex-direction:row-reverse;margin-left:auto}
+.msg.user .msg-name{text-align:right}
+.chat-input-area{padding:12px 16px;border-top:1px solid var(--border);background:var(--surface2)}
+.chat-input-wrap{display:flex;gap:8px;align-items:flex-end}
+.chat-input{flex:1;padding:9px 12px;border-radius:8px;font-size:13px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:inherit;resize:none;outline:none;line-height:1.5;max-height:100px;transition:border-color .15s}
+.chat-input:focus{border-color:var(--accent)}
+.chat-send{padding:9px 18px;border-radius:8px;font-size:12px;background:var(--accent);color:#fff;border:none;cursor:pointer;font-weight:600;font-family:inherit;transition:opacity .15s;white-space:nowrap}
+.chat-send:hover{opacity:.85}
+.chat-sidebar{width:240px;flex-shrink:0;display:flex;flex-direction:column;gap:12px}
+.sidebar-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px}
+.sidebar-card h3{font-size:12px;font-weight:700;margin-bottom:8px}
+.prompt-btn{display:block;width:100%;padding:7px 10px;margin-bottom:5px;border-radius:7px;font-size:11px;background:var(--bg);border:1px solid var(--border);color:var(--text2);cursor:pointer;text-align:left;font-family:inherit;transition:all .12s}
+.prompt-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+.followup-btn{padding:5px 10px;border-radius:6px;font-size:11px;background:var(--bg);border:1px solid var(--border);color:var(--text2);cursor:pointer;font-family:inherit;margin:2px;transition:all .12s}
+.followup-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ========== SEARCH ========== */
+.search-hero{text-align:center;padding:36px 0 24px}
+.search-hero h2{font-size:24px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px}
+.search-hero p{font-size:13px;color:var(--text2)}
+.search-bar-wrap{display:flex;max-width:520px;margin:16px auto 0;gap:8px}
+.search-bar{flex:1;padding:11px 16px;border-radius:10px;font-size:13px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:inherit;outline:none;transition:all .15s;box-shadow:var(--shadow)}
+.search-bar:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light)}
+.search-go{padding:11px 20px;border-radius:10px;font-size:13px;background:var(--accent);color:#fff;border:none;cursor:pointer;font-weight:600;font-family:inherit}
+.search-tags{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.search-cat{padding:5px 12px;border-radius:18px;font-size:11px;background:var(--surface);border:1px solid var(--border);color:var(--text2);cursor:pointer;font-family:inherit;transition:all .12s}
+.search-cat:hover,.search-cat.active{background:var(--accent-light);border-color:var(--accent-border);color:var(--accent)}
+.search-results{max-width:760px;margin:20px auto 0}
+.search-item{display:flex;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;cursor:pointer;transition:all .15s}
+.search-item:hover{border-color:var(--accent-border);box-shadow:var(--shadow)}
+.search-item-icon{font-size:20px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:var(--bg);border-radius:7px;flex-shrink:0}
+.search-item-body{flex:1;min-width:0}
+.search-item-title{font-size:13px;font-weight:600;margin-bottom:1px}
+.search-item-desc{font-size:11px;color:var(--text2)}
+.search-item-tags{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap}
+.search-item-tag{font-size:9px;padding:2px 6px;border-radius:4px;background:var(--bg);color:var(--text3);font-family:var(--mono)}
+.search-item-tag.cat{background:var(--accent-light);color:var(--accent)}
+
+/* ========== GITHUB & OSS ========== */
+.gh-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;margin-bottom:16px}
+.gh-panel h3{font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.gh-connect{display:flex;gap:8px;margin-bottom:12px}
+.gh-connect input{flex:1;padding:9px 12px;border-radius:8px;font-size:12px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:inherit;outline:none}
+.gh-connect input:focus{border-color:var(--accent)}
+.gh-connect button{padding:9px 18px;border-radius:8px;font-size:12px;background:#24292e;color:#fff;border:none;cursor:pointer;font-weight:600;font-family:inherit;display:flex;align-items:center;gap:5px}
+.gh-repos{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.gh-repo-card{padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;transition:all .15s}
+.gh-repo-card:hover{border-color:var(--accent-border);box-shadow:var(--shadow)}
+.gh-repo-name{font-size:13px;font-weight:700;margin-bottom:3px}
+.gh-repo-desc{font-size:11px;color:var(--text2);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gh-repo-meta{display:flex;gap:10px;font-size:10px;color:var(--text3);font-family:var(--mono)}
+.oss-cat{padding:5px 12px;border-radius:18px;font-size:11px;background:var(--surface);border:1px solid var(--border);color:var(--text2);cursor:pointer;font-family:inherit;transition:all .12s}
+.oss-cat:hover,.oss-cat.active{background:var(--accent-light);border-color:var(--accent-border);color:var(--accent)}
+.oss-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.oss-card{padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;transition:all .15s}
+.oss-card:hover{border-color:var(--accent-border);box-shadow:var(--shadow)}
+.oss-card-head{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.oss-card-emoji{font-size:16px}
+.oss-card-name{font-size:13px;font-weight:700;flex:1}
+.oss-card-stars{font-size:10px;color:var(--orange);font-family:var(--mono)}
+.oss-card-desc{font-size:11px;color:var(--text2);margin-bottom:6px}
+.oss-card-tags{display:flex;gap:4px;flex-wrap:wrap}
+.oss-tag{font-size:9px;padding:2px 6px;border-radius:4px;background:var(--bg);color:var(--text3);font-family:var(--mono)}
+
+/* ========== TOOLBOX ========== */
+.tool-category{margin-bottom:16px}
+.tool-cat-title{font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.tool-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.tool-card{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;transition:all .15s;cursor:pointer}
+.tool-card:hover{border-color:var(--accent-border);box-shadow:var(--shadow)}
+.tool-card-emoji{font-size:16px}
+.tool-card-name{font-size:12px;font-weight:600}
+.tool-card-desc{font-size:10px;color:var(--text3);margin-left:auto}
+
+/* ========== MODAL ========== */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--surface);border-radius:var(--radius-lg);padding:22px;max-width:420px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:var(--shadow-xl)}
+.modal h2{font-size:17px;font-weight:700;margin-bottom:12px}
+.modal-close{float:right;background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;padding:2px}
+.api-modal-fields{display:flex;flex-direction:column;gap:10px}
+.api-modal-field{display:flex;flex-direction:column;gap:3px}
+.api-modal-field label{font-size:11px;font-weight:600;color:var(--text2);font-family:var(--mono)}
+.api-modal-field input{padding:9px 12px;border-radius:8px;font-size:12px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);outline:none}
+.api-modal-field input:focus{border-color:var(--accent)}
+.modal-actions{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+.modal-actions button{padding:8px 18px;border-radius:8px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;border:none}
+
+/* ========== TOAST ========== */
+#toastContainer{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:6px}
+.toast{padding:10px 16px;border-radius:10px;font-size:12px;font-weight:600;box-shadow:var(--shadow-lg);opacity:0;transform:translateY(8px);transition:all .25s;max-width:300px}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.exit{opacity:0;transform:translateY(4px)}
+.toast.success{background:var(--green);color:#fff}
+.toast.info{background:var(--accent);color:#fff}
+.toast.error{background:var(--red);color:#fff}
+
+/* ========== RESPONSIVE ========== */
+@media(max-width:1024px){.sidebar{display:none}.chat-layout{flex-direction:column}.chat-sidebar{width:100%;flex-direction:row;flex-wrap:wrap}}
+@media(max-width:640px){.topnav-inner{padding:0 12px}.topnav-tabs{gap:0}.tab-btn{padding:5px 8px;font-size:11px}.container{padding:14px}.design-grid{grid-template-columns:1fr}}
+
+</style>
+</head>
+<body>
+
+<!-- Topnav -->
+<nav class="topnav"><div class="topnav-inner">
+  <div class="topnav-logo"><div class="logo-icon">F</div><span class="logo-text">FullStack Studio</span><span class="ver">v9</span></div>
+  <div class="topnav-tabs">
+    <button class="tab-btn active" onclick="switchTab('selector')">🧩 技术选型</button>
+    <button class="tab-btn" onclick="switchTab('ai')">🤖 AI助手</button>
+    <button class="tab-btn" onclick="switchTab('search')">🔍 智能搜索</button>
+    <button class="tab-btn" onclick="switchTab('toolbox')">🧰 工具箱</button>
+  </div>
+  <div class="topnav-right">
+    <span class="time-badge" id="currentTime"></span>
+    <button class="model-picker-btn" onclick="toggleModelPicker()">
+      <span class="mp-emoji" id="currentModelEmoji">⚡</span>
+      <span class="mp-name" id="currentModelName">GPT-4o</span>
+      <span class="mp-arrow">▾</span>
+    </button>
+    <button class="apikey-btn" onclick="toggleApiModal()"> API Keys</button>
+  </div>
+</div></nav>
+
+<!-- Model Picker Overlay -->
+<div class="model-picker-overlay" id="modelPickerOverlay" onclick="toggleModelPicker()">
+  <div class="model-picker-dropdown" onclick="event.stopPropagation()"><div class="mp-header">选择模型</div><div id="modelPickerList"></div></div>
+</div>
+
+<!-- API Key Modal -->
+<div class="modal-overlay" id="apiModal">
+  <div class="modal">
+    <button class="modal-close" onclick="toggleApiModal()">✕</button>
+    <h2>🔑 API Keys</h2>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:14px">填入你的API密钥以启用真实AI对话</p>
+    <div class="api-modal-fields">
+      <div class="api-modal-field"><label>OpenAI</label><input class="api-key-input" data-provider="openai" placeholder="sk-..."></div>
+      <div class="api-modal-field"><label>Anthropic</label><input class="api-key-input" data-provider="anthropic" placeholder="sk-ant-..."></div>
+      <div class="api-modal-field"><label>Google Gemini</label><input class="api-key-input" data-provider="google" placeholder="AIza..."></div>
+      <div class="api-modal-field"><label>DeepSeek</label><input class="api-key-input" data-provider="deepseek" placeholder="sk-..."></div>
+      <div class="api-modal-field"><label>阿里通义</label><input class="api-key-input" data-provider="tongyi" placeholder="sk-..."></div>
+    </div>
+    <div class="modal-actions">
+      <button style="background:var(--bg);color:var(--text2);border:1px solid var(--border)" onclick="toggleApiModal()">取消</button>
+      <button style="background:var(--accent);color:#fff" onclick="saveApiKeys()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="main-layout">
+<!-- ========== SIDEBAR ========== -->
+<aside class="sidebar">
+  <div class="sidebar-header"><h3>📁 项目管理</h3></div>
+  
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">任务</div>
+    <div class="sidebar-task active" onclick="switchSidebarTab(0)"><span class="sidebar-task-icon">📋</span>任务列表<span class="sidebar-task-meta">3</span></div>
+    <div class="sidebar-task" onclick="switchSidebarTab(1)"><span class="sidebar-task-icon">🤖</span>Agents<span class="sidebar-task-badge">3</span></div>
+    <div class="sidebar-task" onclick="switchSidebarTab(2)"><span class="sidebar-task-icon">☁️</span>云同步</div>
+  </div>
+  
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Agents</div>
+    <div class="sidebar-agent"><div class="sidebar-agent-dot" style="background:var(--green)"></div>编程专家</div>
+    <div class="sidebar-agent"><div class="sidebar-agent-dot" style="background:var(--accent)"></div>架构师</div>
+    <div class="sidebar-agent"><div class="sidebar-agent-dot" style="background:var(--orange)"></div>UI设计师</div>
+  </div>
+  
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">项目</div>
+    <div class="sidebar-proj-create">
+      <input id="projNameInput" placeholder="项目名..." onkeydown="if(event.key==='Enter')createProject()">
+      <button onclick="createProject()">创建</button>
+    </div>
+    <div class="sidebar-proj-tree-wrap" id="sidebarTreeWrap">
+      <div style="font-size:11px;font-weight:700;margin-bottom:6px" id="sidebarTreeTitle">📁 项目</div>
+      <div class="sidebar-proj-tree" id="sidebarTree"></div>
+    </div>
+  </div>
+  
+  <button class="sidebar-check-btn" onclick="runCodeCheck()">🔍 检查代码框架</button>
+  <div class="sidebar-check-results" id="sidebarCheckResults"></div>
+</aside>
+
+<!-- ========== MAIN CONTENT ========== -->
+<main class="main-content">
+
+<!-- TAB 1: 技术选型 -->
+<div class="tab-content active" id="tab-selector">
+<div class="container">
+  
+  <div class="prompt-gen-panel">
+    <h3>🧬 提示词生成器</h3>
+    <div class="sub">融合所有选择，生成一份完美的开发提示词</div>
+    <div class="prompt-gen-actions">
+      <button class="pg-btn pg-btn-primary" onclick="generatePrompt()">✨ 生成提示词</button>
+      <button class="pg-btn pg-btn-secondary" onclick="copyPrompt()">📋 复制</button>
+      <button class="pg-btn pg-btn-secondary" onclick="exportPrompt()">📥 导出MD</button>
+    </div>
+    <pre class="prompt-output" id="promptOutput"></pre>
+  </div>
+  
+  <div class="section-header">
+    <h2> 设计审美方向</h2>
+    <p>选择你喜欢的设计风格，融入最终提示词</p>
+  </div>
+  <div class="design-grid" id="designGrid"></div>
+  
+  <div style="margin-top:28px" id="tsContainer"></div>
+  
+</div>
+</div>
+
+<!-- TAB 2: AI助手 -->
+<div class="tab-content" id="tab-ai">
+<div class="container">
+  <div class="chat-layout">
+    <div class="chat-main">
+      <div class="chat-header">
+        <div class="chat-header-dot"></div>
+        <div class="chat-header-title">AI 助手</div>
+        <div class="chat-header-model" id="chatModelBadge">GPT-4o</div>
+        <span class="chat-msg-count" id="chatMsgCount">0条</span>
+        <button class="chat-clear-btn" onclick="clearChat()">清空</button>
+      </div>
+      <div class="chat-messages" id="chatList">
+        <div style="text-align:center;padding:40px 0;color:var(--text3)">
+          <div style="font-size:36px;margin-bottom:8px">🤖</div>
+          <div style="font-size:13px">有什么可以帮你的？</div>
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <div class="followup-wrap" id="chatSuggestions" style="margin-bottom:10px;padding:0;border:none"></div>
+        <div class="chat-input-wrap">
+          <textarea class="chat-input" id="chatInput" placeholder="输入你的问题..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"></textarea>
+          <button class="chat-send" onclick="sendChat()">发送</button>
+        </div>
+      </div>
+    </div>
+    <div class="chat-sidebar">
+      <div class="sidebar-card">
+        <h3>💡 快速提问</h3>
+        <button class="prompt-btn" onclick="chatQuick('帮我设计一个电商网站的技术栈')">帮我设计电商网站</button>
+        <button class="prompt-btn" onclick="chatQuick('React和Vue哪个好？')">React vs Vue对比</button>
+        <button class="prompt-btn" onclick="chatQuick('如何设计RESTful API？')">RESTful API设计</button>
+        <button class="prompt-btn" onclick="chatQuick('推荐一些好的开源项目')">推荐开源项目</button>
+        <button class="prompt-btn" onclick="chatQuick('性能优化有哪些方案？')">性能优化方案</button>
+      </div>
+      <div class="sidebar-card">
+        <h3>🔑 快捷配置</h3>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px">填入API Key启用真实AI对话</div>
+        <button class="prompt-btn" onclick="toggleApiModal()" style="width:100%;text-align:center">️ 配置API Keys</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- TAB 3: 智能搜索 -->
+<div class="tab-content" id="tab-search">
+<div class="container">
+  <div class="search-hero">
+    <h2>🔍 智能资源搜索</h2>
+    <p>精选开发资源、文档、开源项目，一键发现</p>
+    <div class="search-bar-wrap">
+      <input class="search-bar" id="searchInput" placeholder="搜索技术资源..." oninput="filterSearch(this.value)" onkeydown="if(event.key==='Enter')filterSearch(this.value)">
+      <button class="search-go" onclick="filterSearch(document.getElementById('searchInput').value)">搜索</button>
+    </div>
+    <div class="search-tags" id="searchCats"></div>
+  </div>
+  <div class="search-results" id="searchResults"></div>
+</div>
+</div>
+
+<!-- TAB 4: 工具箱 -->
+<div class="tab-content" id="tab-toolbox">
+<div class="container">
+  
+  <div class="gh-panel">
+    <h3>🐙 GitHub 仓库</h3>
+    <div class="gh-connect">
+      <input id="ghInput" placeholder="输入GitHub用户名..." onkeydown="if(event.key==='Enter')fetchGitHub()">
+      <button onclick="fetchGitHub()">🔍 查看仓库</button>
+    </div>
+    <div class="gh-repos" id="ghResults"></div>
+  </div>
+  
+  <div class="section-header">
+    <h2>🌟 开源发现</h2>
+    <p>精选优质开源项目</p>
+  </div>
+  <div class="search-tags" id="ossCats" style="margin-bottom:16px;justify-content:flex-start"></div>
+  <div class="oss-grid" id="ossResults"></div>
+  
+  <div style="margin-top:28px" id="toolboxGrid"></div>
+  
+</div>
+</div>
+
+</main>
+</div>
+
+<div id="toastContainer"></div>
+<script>
+
+// ==================== MODELS ====================
+const MODEL_MAP={};
+const MODELS=[
+{id:'gpt-4o',emoji:'⚡',name:'GPT-4o',provider:'openai',badge:'热门',badgeClass:'hot'},
+{id:'gpt-4o-mini',emoji:'🟢',name:'GPT-4o mini',provider:'openai',badge:'免费',badgeClass:'free'},
+{id:'gpt-4.1',emoji:'🔵',name:'GPT-4.1',provider:'openai',badge:'新',badgeClass:'new'},
+{id:'o3',emoji:'🧠',name:'o3',provider:'openai',badge:'推理',badgeClass:'pro'},
+{id:'claude-sonnet-5',emoji:'',name:'Claude Sonnet 5',provider:'anthropic',badge:'最强',badgeClass:'hot'},
+{id:'claude-opus-5',emoji:'🔴',name:'Claude Opus 5',provider:'anthropic',badge:'旗舰',badgeClass:'pro'},
+{id:'claude-haiku-4-5',emoji:'',name:'Claude Haiku 4.5',provider:'anthropic',badge:'极速',badgeClass:'new'},
+{id:'gemini-2.5-pro',emoji:'🔷',name:'Gemini 2.5 Pro',provider:'google',badge:'强',badgeClass:'hot'},
+{id:'gemini-2.5-flash',emoji:'',name:'Gemini 2.5 Flash',provider:'google',badge:'快',badgeClass:'free'},
+{id:'deepseek-v3',emoji:'🐋',name:'DeepSeek-V3',provider:'deepseek',badge:'国产',badgeClass:'hot'},
+{id:'deepseek-r1',emoji:'🧩',name:'DeepSeek-R1',provider:'deepseek',badge:'推理',badgeClass:'pro'},
+{id:'glm-5',emoji:'🌊',name:'GLM-5',provider:'tongyi',badge:'国产',badgeClass:'hot'},
+{id:'glm-4',emoji:'🌐',name:'GLM-4',provider:'tongyi',badge:'免费',badgeClass:'free'},
+{id:'qwen-max',emoji:'',name:'通义千问-Max',provider:'tongyi',badge:'旗舰',badgeClass:'pro'},
+{id:'qwen-plus',emoji:'🤖',name:'通义千问-Plus',provider:'tongyi',badge:'均衡',badgeClass:'hot'},
+{id:'kimi-k2',emoji:'',name:'Kimi K2',provider:'tongyi',badge:'长上下文',badgeClass:'new'},
+{id:'yi-large',emoji:'',name:'Yi-Large',provider:'tongyi',badge:'零一',badgeClass:''},
+{id:'llama-3.1-405b',emoji:'🦙',name:'Llama 3.1 405B',provider:'openai',badge:'开源',badgeClass:'free'},
+{id:'mistral-large',emoji:'🇷',name:'Mistral Large',provider:'openai',badge:'法国',badgeClass:''},
+{id:'grok-3',emoji:'✖️',name:'Grok 3',provider:'openai',badge:'xAI',badgeClass:'new'},
+{id:'command-r',emoji:'🅲',name:'Command R+',provider:'openai',badge:'Cohere',badgeClass:''},
+{id:'claude-3.5-sonnet',emoji:'🟣',name:'Claude 3.5 Sonnet',provider:'anthropic',badge:'经典',badgeClass:''},
+{id:'gpt-3.5-turbo',emoji:'',name:'GPT-3.5 Turbo',provider:'openai',badge:'免费',badgeClass:'free'},
+];
+MODELS.forEach(m=>MODEL_MAP[m.id]=m);
+let currentModel='gpt-4o';
+
+function renderModelPicker(){
+  let h='';let lastP='';
+  MODELS.forEach(m=>{
+    if(m.provider!==lastP){h+=`<div class="mp-header">${m.provider.toUpperCase()}</div>`;lastP=m.provider}
+    h+=`<div class="mp-item${m.id===currentModel?' active':''}" onclick="selectModel('${m.id}')"><span class="mp-item-icon">${m.emoji}</span><div class="mp-item-name"><span>${m.name}</span><span class="mp-item-badge ${m.badgeClass}">${m.badge}</span></div></div>`;
+  });
+  document.getElementById('modelPickerList').innerHTML=h;
+}
+
+// ==================== DESIGN DIRECTIONS ====================
+let selectedDesign=null;
+const DESIGN_DIRS=[
+{id:'minimal',emoji:'◻️',name:'极简主义',desc:'大量留白，克制的配色，精细的排版',palette:['#FFFFFF','#F5F5F5','#1A1A1A','#4A4A4A','#E0E0E0'],tags:['大量留白','细线边框','微妙阴影','单色强调'],preview:'minimal'},
+{id:'glass',emoji:'',name:'玻璃拟态',desc:'半透明磨砂玻璃效果，渐变背景',palette:['#667eea','#764ba2','#ffffff','#a78bfa','#c4b5fd'],tags:['毛玻璃','渐变','半透明','柔和阴影'],preview:'glass'},
+{id:'dark-tech',emoji:'️',name:'暗色科技',desc:'深色主题，高对比度，等宽字体',palette:['#0D1117','#161B22','#3FB950','#A78BFA','#F85149'],tags:['深色','终端风','高对比','霓虹'],preview:'dark'},
+{id:'warm',emoji:'',name:'温暖插画',desc:'暖色调，手绘插画风，亲和力强',palette:['#FFF8F0','#FF6B35','#4A3728','#FFD166','#F4A261'],tags:['暖色','插画','亲和力','柔和'],preview:'warm'},
+{id:'corp',emoji:'🏢',name:'企业商务',desc:'专业严谨，蓝灰色系，数据可视化',palette:['#F0F4F8','#1E3A5F','#2563EB','#E2E8F0','#475569'],tags:['专业','蓝色','数据','表格'],preview:'corp'},
+{id:'creative',emoji:'🎨',name:'创意大胆',desc:'鲜艳撞色，不规则形状，动态布局',palette:['#FF006E','#3A86FF','#FFBE0B','#FFFBF0','#8338EC'],tags:['撞色','大胆','动感','不规则'],preview:'creative'},
+{id:'neumorph',emoji:'',name:'新拟态',desc:'柔和凸起/凹陷，单色背景，光影效果',palette:['#E0E5EC','#B8BEC6','#FFFFFF','#4A4A4A','#6C757D'],tags:['凸起','柔和','单色','光影'],preview:'neumorph'},
+{id:'japanese',emoji:'',name:'日式侘寂',desc:'自然色调，枯山水意境，极简禅意',palette:['#F5F0E8','#8B7355','#4A4035','#C4A882','#D4C5B2'],tags:['禅意','自然','极简','侘寂'],preview:'japanese'},
+];
+
+function renderDesignGrid(){
+  const g=document.getElementById('designGrid');
+  g.innerHTML=DESIGN_DIRS.map(d=>{
+    let pv='';
+    switch(d.preview){
+      case'minimal':pv=`<div class="dp-minimal"><div class="dp-bar"></div><div class="dp-content"><div class="dp-block w60"></div><div class="dp-block w80"></div><div class="dp-block w40"></div><div class="dp-btn"></div></div></div>`;break;
+      case'glass':pv=`<div class="dp-glass"><div class="dp-glow"></div><div class="dp-card"><div class="dp-line w70"></div><div class="dp-line w50"></div></div><div class="dp-card"><div class="dp-line w50"></div></div></div>`;break;
+      case'dark':pv=`<div class="dp-dark"><div class="dp-term">$ npm install <span>react</span><br>$ npx create-app <span class="b">my-app</span><br><span>✓</span> Ready on <span>http://localhost:3000</span></div></div>`;break;
+      case'warm':pv=`<div class="dp-warm"><div class="dp-illustration"></div><div class="dp-wtext w60"></div><div class="dp-wtext" style="width:45%;margin:0 auto"></div></div>`;break;
+      case'corp':pv=`<div class="dp-corp"><div class="dp-sidebar-mock"></div><table class="dp-table-mock"><tr><td>Q1</td><td>128</td><td>+12%</td></tr><tr><td>Q2</td><td>256</td><td>+24%</td></tr></table></div>`;break;
+      case'creative':pv=`<div class="dp-creative"><div class="dp-blob1"></div><div class="dp-blob2"></div><div class="dp-blob3"></div></div>`;break;
+      case'neumorph':pv=`<div class="dp-neumorph"><div class="dp-neu"></div><div class="dp-neu2"></div><div class="dp-neu" style="width:36px"></div></div>`;break;
+      case'japanese':pv=`<div class="dp-japanese"><div class="dp-zen"></div><div class="dp-vtext">侘寂之美</div></div>`;break;
+    }
+    const colors=d.palette.map(c=>`<span style="background:${c}"></span>`).join('');
+    const tags=d.tags.map(t=>`<span>${t}</span>`).join('');
+    return`<div class="design-card${selectedDesign===d.id?' selected':''}" onclick="selectDesign('${d.id}')"><div class="design-card-check">✓</div><div class="design-preview">${pv}</div><div class="design-card-info"><div class="design-card-title">${d.emoji} ${d.name}</div><div class="design-card-desc">${d.desc}</div><div class="design-card-colors">${colors}</div><div class="design-card-tags">${tags}</div></div></div>`;
+  }).join('');
+}
+function selectDesign(id){selectedDesign=selectedDesign===id?null:id;renderDesignGrid()}
+renderModelPicker();
+renderDesignGrid();
+
+// ==================== TECH SELECTOR ====================
+const TS_DATA=[
+{title:'阶段一：需求分析',sub:'明确项目类型和约束条件',sections:[
+  {label:'项目类型',hint:'必选',options:[
+    {emoji:'',name:'电商平台',desc:'商品展示、购物车、支付',tags:['全栈'],tag:'hot'},
+    {emoji:'',name:'SaaS 应用',desc:'多租户、订阅计费、Dashboard',tags:['B端'],tag:''},
+    {emoji:'',name:'社交/内容平台',desc:'UGC、Feed流、实时通讯',tags:['C端'],tag:''},
+    {emoji:'',name:'工具/效率应用',desc:'表单、工作流、自动化',tags:['效率'],tag:''},
+    {emoji:'',name:'内容/媒体站',desc:'博客、新闻、CMS',tags:['内容'],tag:''},
+    {emoji:'',name:'游戏/互动',desc:'WebGL、实时交互',tags:['创意'],tag:'new'},
+  ]},
+  {label:'团队规模',hint:'影响复杂度',options:[
+    {emoji:'',name:'个人项目',desc:'1人，追求效率'},
+    {emoji:'',name:'小团队 (2-5人)',desc:'前后端分工'},
+    {emoji:'👥',name:'中型团队 (5-15人)',desc:'多角色协作'},
+    {emoji:'',name:'大团队 (15+)',desc:'微服务、模块化'},
+  ]},
+]},
+{title:'阶段二：前端选型',sub:'选择前端框架和UI方案',sections:[
+  {label:'前端框架',hint:'核心选择',options:[
+    {emoji:'️',name:'React',desc:'最大生态，适合大型项目',stars:'220k',tags:['最流行'],tag:'hot'},
+    {emoji:'🟢',name:'Vue 3',desc:'上手快，国内生态好',stars:'46k',tags:['易上手'],tag:'rising'},
+    {emoji:'🅰️',name:'Angular',desc:'企业级全功能',stars:'97k',tags:['企业级'],tag:''},
+    {emoji:'🔥',name:'Svelte',desc:'编译时框架，性能佳',stars:'78k',tags:['高性能'],tag:'new'},
+  ]},
+  {label:'CSS/UI方案',hint:'样式方案',options:[
+    {emoji:'💨',name:'Tailwind CSS',desc:'实用优先',tags:['推荐'],tag:'hot'},
+    {emoji:'🎨',name:'shadcn/ui',desc:'精美可定制',tags:['新'],tag:'new'},
+    {emoji:'',name:'Ant Design',desc:'企业UI组件库',tags:['组件库'],tag:''},
+    {emoji:'',name:'CSS Modules',desc:'组件化CSS',tags:['模块化'],tag:''},
+  ]},
+]},
+{title:'阶段三：后端选型',sub:'选择服务端技术和数据库',sections:[
+  {label:'后端框架',hint:'API服务',options:[
+    {emoji:'🟩',name:'Node.js+Express',desc:'JavaScript全栈',tags:['全栈'],tag:''},
+    {emoji:'',name:'Node.js+Fastify',desc:'高性能Node',tags:['高性能'],tag:'rising'},
+    {emoji:'',name:'Python+FastAPI',desc:'现代Python Web',tags:['AI友好'],tag:'hot'},
+    {emoji:'',name:'Go+Gin',desc:'高性能后端',tags:['高性能'],tag:''},
+    {emoji:'',name:'Java+Spring',desc:'企业级框架',tags:['企业级'],tag:''},
+  ]},
+  {label:'数据库',hint:'数据存储',options:[
+    {emoji:'🐘',name:'PostgreSQL',desc:'最强开源RDBMS',tags:['首推'],tag:'hot'},
+    {emoji:'🐬',name:'MySQL',desc:'最流行开源DB',tags:['经典'],tag:''},
+    {emoji:'🍃',name:'MongoDB',desc:'灵活NoSQL',tags:['灵活'],tag:''},
+    {emoji:'⚡',name:'Redis',desc:'内存缓存',tags:['缓存'],tag:'rising'},
+  ]},
+]},
+{title:'阶段四：部署运维',sub:'选择部署平台和基础设施',sections:[
+  {label:'部署平台',hint:'应用托管',options:[
+    {emoji:'▲',name:'Vercel',desc:'前端/Next.js首选',tags:['推荐'],tag:'hot'},
+    {emoji:'',name:'Railway',desc:'全栈部署',tags:['全栈'],tag:'rising'},
+    {emoji:'',name:'AWS',desc:'全球最大云',tags:['企业级'],tag:''},
+    {emoji:'',name:'阿里云',desc:'国内首选',tags:['国内'],tag:''},
+  ]},
+  {label:'CI/CD',hint:'自动化',options:[
+    {emoji:'🐙',name:'GitHub Actions',desc:'最流行CI/CD',tags:['推荐'],tag:'hot'},
+    {emoji:'🦊',name:'GitLab CI',desc:'集成GitLab',tags:['集成'],tag:''},
+    {emoji:'🔄',name:'CircleCI',desc:'专业CI',tags:['专业'],tag:''},
+  ]},
+]},
+];
+const tsSelections={};
+
+function renderTechSelector(){
+  const c=document.getElementById('tsContainer');
+  let h='';
+  TS_DATA.forEach((stage,si)=>{
+    h+=`<div style="margin-bottom:18px"><div class="ts-stage-title">${stage.title}</div><div class="ts-stage-sub">${stage.sub}</div>`;
+    stage.sections.forEach((sec,ssi)=>{
+      const sid=`ts_${si}_${ssi}`;tsSelections[sid]=tsSelections[sid]||null;
+      h+=`<div class="ts-section"><div class="ts-section-head"><span class="ts-section-label">${sec.label}</span><span class="ts-section-hint">${sec.hint}</span><div class="ts-search"><input placeholder="搜索..." oninput="tsFilter(this,'${sid}')"></div></div>`;
+      h+=`<div class="ts-options" id="${sid}">`;
+      sec.options.forEach((opt,oi)=>{
+        const sel=tsSelections[sid]===oi?' selected':'';
+        const tags=opt.tags?opt.tags.map(t=>`<span class="ts-tag ${opt.tag||''}">${t}</span>`).join(''):'';
+        const stars=opt.stars?`<span class="ts-opt-stars">⭐${opt.stars}</span>`:'';
+        h+=`<div class="ts-option${sel}" onclick="tsSelect(this,${si},${ssi},${oi})"><div class="ts-opt-top"><span class="ts-opt-emoji">${opt.emoji}</span><span class="ts-opt-name">${opt.name}</span>${stars}</div>${tags?'<div class="ts-opt-tags">'+tags+'</div>':''}<div class="ts-opt-desc">${opt.desc}</div></div>`;
+      });
+      h+='</div></div>';
+    });
+    h+='</div>';
+  });
+  c.innerHTML=h;
+}
+function tsSelect(el,si,ssi,oi){const sid=`ts_${si}_${ssi}`;el.parentElement.querySelectorAll('.ts-option').forEach(s=>s.classList.remove('selected'));el.classList.add('selected');tsSelections[sid]=oi}
+function tsFilter(input,sid){const q=input.value.toLowerCase();document.getElementById(sid).querySelectorAll('.ts-option').forEach(o=>{o.classList.toggle('hidden',!o.textContent.toLowerCase().includes(q))})}
+renderTechSelector();
+
+function getAllSelections(){
+  const r=[];
+  TS_DATA.forEach((stage,si)=>{stage.sections.forEach((sec,ssi)=>{
+    const sid=`ts_${si}_${ssi}`,oi=tsSelections[sid];
+    if(oi!==null&&oi!==undefined){const opt=sec.options[oi];r.push({stage:stage.title,section:sec.label,name:opt.name,desc:opt.desc,emoji:opt.emoji})}
+  })});
+  return r;
+}
+
+// ==================== PROMPT GENERATOR ====================
+function generatePrompt(){
+  const sels=getAllSelections();
+  const design=DESIGN_DIRS.find(d=>d.id===selectedDesign);
+  const projName=document.getElementById('projNameInput').value.trim()||'my-project';
+  if(sels.length<3){showToast('请至少完成3项技术选型再生成','info');return}
+  
+  const byStage={};sels.forEach(s=>{if(!byStage[s.stage])byStage[s.stage]=[];byStage[s.stage].push(s)});
+  
+  let p=`# 全栈项目开发提示词\n\n`;
+  p+=`## 项目信息\n- 项目名称: ${projName}\n- 生成时间: ${new Date().toLocaleDateString('zh-CN')}\n- AI模型: ${MODEL_MAP[currentModel].name}\n\n`;
+  p+=`## 技术选型\n\n`;
+  Object.keys(byStage).forEach(stage=>{
+    p+=`### ${stage.replace(/阶段[一二三四五]：/,'')}\n`;
+    byStage[stage].forEach(s=>{p+=`- ${s.emoji} **${s.section}**: ${s.name} — ${s.desc}\n`});
+    p+='\n';
+  });
+  if(design){
+    p+=`## 设计规范\n- 风格: ${design.emoji} ${design.name}\n- 理念: ${design.desc}\n- 配色: ${design.palette.join(', ')}\n- 标签: ${design.tags.join('、')}\n\n`;
+  }
+  p+=`## 项目结构\n\`\`\`\n${projName}/\n├── src/components/ui/     (Button, Input, Card)\n├── src/components/layout/  (Header, Sidebar, Footer)\n├── src/pages/              (index, login, dashboard)\n├── src/hooks/              (useAuth, useApi)\n├── src/store/              (状态管理)\n├── src/services/           (API封装)\n├── src/styles/             (全局样式+主题)\n├── server/routes/          (API路由)\n├── server/models/          (数据模型)\n├── server/middleware/       (认证/错误处理)\n├── database/migrations/    (数据库迁移)\n├── docker/                 (Dockerfile, compose)\n├── .github/workflows/ci.yml\n└── README.md\n\`\`\`\n\n`;
+  p+=`## 开发要求\n### 代码规范\n- TypeScript严格模式\n- 函数式组件 + Hooks\n- API调用封装在services层\n- 统一错误处理\n\n### 安全\n- 密码bcrypt加密\n- JWT + Refresh Token\n- 输入验证和清洗\n- CORS白名单\n\n### 性能\n- 首屏<2s\n- 代码分割+懒加载\n- 数据库查询加索引\n\n### 必须功能\n1. 用户认证(注册/登录)\n2. 权限控制(RBAC)\n3. CRUD完整实现\n4. 表单验证\n5. 响应式布局\n\n---\n*FullStack Studio v9 · ${new Date().toLocaleString('zh-CN')}*`;
+  
+  document.getElementById('promptOutput').textContent=p;
+  document.getElementById('promptOutput').classList.add('show');
+  window._generatedPrompt=p;
+  showToast('提示词已生成！','success');
+}
+function copyPrompt(){if(!window._generatedPrompt){showToast('请先生成提示词','info');return}navigator.clipboard.writeText(window._generatedPrompt).then(()=>showToast('已复制！','success'))}
+function exportPrompt(){if(!window._generatedPrompt){showToast('请先生成提示词','info');return}const n=document.getElementById('projNameInput').value.trim()||'my-project';const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([window._generatedPrompt],{type:'text/markdown'}));a.download=n+'-prompt.md';a.click();showToast('已导出！','success')}
+
+// ==================== PROJECT MANAGER ====================
+function createProject(){
+  const name=document.getElementById('projNameInput').value.trim();
+  if(!name){showToast('请输入项目名','info');return}
+  if(name.length<2){showToast('项目名至少2个字符','info');return}
+  if(/^\d+$/.test(name)){showToast('项目名不能全是数字','info');return}
+  if(!/^[a-zA-Z][a-z0-9-_]{1,}$/i.test(name)){showToast('以字母开头，只用字母数字-_','info');return}
+  
+  const sels=getAllSelections();
+  const hasNode=sels.some(s=>s.name.includes('Node'));
+  const hasPython=sels.some(s=>s.name.includes('Python'));
+  const hasFrontend=sels.some(s=>['React','Vue','Angular','Svelte'].some(f=>s.name.includes(f)));
+  const hasDB=sels.some(s=>s.section==='数据库');
+  
+  let tree=` ${name}/\n`;
+  tree+=`├── 📄 README.md\n├── 📄 package.json\n├── 📄 .env.local\n`;
+  if(hasFrontend){tree+=`├── 📂 src/\n│   ├──  components/ui/\n│   ├── 📂 components/layout/\n│   ├── 📂 pages/\n│   ├── 📂 hooks/\n│   ├── 📂 store/\n│   ├── 📂 services/\n│   ├── 📂 styles/\n│   └── App.tsx\n`}
+  if(hasNode){tree+=`├── 📂 server/\n│   ├── 📂 routes/\n│   ├──  models/\n│   ├── 📂 middleware/\n│   └── 📂 services/\n`}
+  if(hasPython){tree+=`── 📂 backend/\n│   ├──  app/routers/\n│   ├──  app/models/\n│   └──  app/core/\n`}
+  if(hasDB){tree+=`├── 📂 database/\n│   ├── 📂 migrations/\n│   ── 📂 seeds/\n`}
+  tree+=`├── 📂 docker/\n── 📂 docs/\n└──  .github/workflows/`;
+  
+  document.getElementById('sidebarTree').innerHTML=tree.replace(/\n/g,'<br>').replace(/(📂 [^\n<]*)/g,'<span class="fl">$1</span>');
+  document.getElementById('sidebarTreeTitle').textContent=`📁 ${name}/`;
+  document.getElementById('sidebarTreeWrap').style.display='block';
+  window._projectTree=tree;
+  window._projectName=name;
+  showToast(`${name} 创建成功！`,'success');
+}
+
+function runCodeCheck(){
+  if(!window._projectName){showToast('请先创建项目','info');return}
+  const sels=getAllSelections();
+  const design=DESIGN_DIRS.find(d=>d.id===selectedDesign);
+  const checks=[];let score=0;
+  const TOTAL=100;
+  
+  const hasFrontend=sels.some(s=>['React','Vue 3','Angular','Svelte'].some(f=>s.name.includes(f)));
+  if(hasFrontend){const fw=sels.find(s=>['React','Vue 3','Angular','Svelte'].some(f=>s.name.includes(f)));checks.push({t:'pass',i:'',x:`前端: ${fw.name}`});score+=20}else{checks.push({t:'fail',i:'',x:'缺少前端框架，无法创建UI'})}
+  
+  const hasBackend=sels.some(s=>s.section==='后端框架');
+  if(hasBackend){const bk=sels.find(s=>s.section==='后端框架');checks.push({t:'pass',i:'',x:`后端: ${bk.name}`});score+=20}else{checks.push({t:'fail',i:'',x:'未选后端框架，无API服务'})}
+  
+  const hasDB=sels.some(s=>s.section==='数据库');
+  if(hasDB){const db=sels.find(s=>s.section==='数据库');checks.push({t:'pass',i:'',x:`数据库: ${db.name}`});score+=15}else{checks.push({t:'fail',i:'',x:'未选数据库，无法持久化数据'})}
+  
+  const hasDeploy=sels.some(s=>s.section==='部署平台');
+  if(hasDeploy){checks.push({t:'pass',i:'',x:'部署平台已选'});score+=10}else{checks.push({t:'fail',i:'',x:'未选部署平台，无法上线'})}
+  
+  if(design){checks.push({t:'pass',i:'🎨',x:`设计: ${design.name}`});score+=15}else{checks.push({t:'fail',i:'',x:'未选设计方向，UI无风格'})}
+  
+  if(window._generatedPrompt){checks.push({t:'pass',i:'',x:'提示词已生成'});score+=10}else{checks.push({t:'fail',i:'',x:'提示词未生成，无法给大模型'})}
+  
+  const hasCSS=sels.some(s=>s.section==='CSS/UI方案');
+  if(hasCSS){checks.push({t:'pass',i:'',x:'CSS方案已选'});score+=5}else{checks.push({t:'fail',i:'',x:'未选CSS方案，样式未定'})}
+  
+  const hasCI=sels.some(s=>s.section==='CI/CD');
+  if(hasCI){checks.push({t:'pass',i:'',x:'CI/CD已配置'});score+=5}else{checks.push({t:'fail',i:'',x:'未配置CI/CD，无自动化'})}
+  
+  const pct=Math.round(score/TOTAL*100);
+  const barColor=pct>=80?'var(--green)':pct>=50?'var(--orange)':'var(--red)';
+  const grade=pct>=90?'A+':pct>=80?'A':pct>=70?'B+':pct>=60?'B':pct>=50?'C':'D';
+  
+  let h='';
+  checks.forEach(c=>{h+=`<div class="sidebar-check-item ${c.t}"><span>${c.i}</span><span>${c.x}</span></div>`});
+  h+=`<div style="margin-top:8px;padding:7px 10px;background:var(--bg);border-radius:6px;display:flex;align-items:center;gap:8px;font-size:11px;border:1px solid var(--border)"><span>完整度</span><div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${barColor};border-radius:3px;transition:width .4s"></div></div><span style="font-weight:700;font-family:var(--mono);color:${barColor}">${grade} ${pct}%</span></div>`;
+  
+  document.getElementById('sidebarCheckResults').innerHTML=h;
+  if(sels.length<3){showToast(`完成度太低(${pct}%)，建议先完成技术选型`,'error')}
+  else{showToast(`检查完成: ${grade} ${pct}%`,'success')};
+}
+
+function switchSidebarTab(i){
+  document.querySelectorAll('.sidebar-task').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.sidebar-task')[i].classList.add('active');
+}
+
+// ==================== AI CHAT ====================
+let chatHistory=[];
+const KB=[
+{tags:['技术','架构','选型','框架','数据库','部署'],k:'技术选型',v:{score:0.9,hint:'根据项目类型推荐技术栈',steps:['分析项目需求','匹配技术方案','评估团队能力','对比优劣势','给出最终建议']}},
+{tags:['api','rest','graphql','接口'],k:'API设计',v:{score:0.85,hint:'RESTful和GraphQL设计规范',steps:['定义资源结构','选择HTTP方法','设计响应格式','编写接口文档']}},
+{tags:['数据库','db','postgres','mysql','mongodb','存储'],k:'数据库设计',v:{score:0.8,hint:'数据库表结构和优化',steps:['设计ER图','定义表结构','创建索引','编写迁移脚本']}},
+{tags:['部署','ci','cd','docker','上线','运维'],k:'部署方案',v:{score:0.85,hint:'从开发到生产的部署流程',steps:['编写Dockerfile','配置CI/CD','设置环境变量','部署到目标平台']}},
+{tags:['登录','注册','认证','jwt','权限','rbac','鉴权'],k:'用户认证',v:{score:0.9,hint:'完整的用户认证和权限系统',steps:['注册流程设计','密码加密存储','JWT登录','RBAC权限控制']}},
+{tags:['前端','react','vue','ui','组件','css'],k:'前端开发',v:{score:0.85,hint:'前端框架和UI组件设计',steps:['选择框架','组件化设计','状态管理','路由设计']}},
+{tags:['性能','优化','缓存','redis','加载','速度'],k:'性能优化',v:{score:0.8,hint:'前后端性能优化策略',steps:['前端懒加载','后端缓存策略','数据库优化','CDN加速']}},
+{tags:['安全','防护','xss','csrf','加密'],k:'安全防护',v:{score:0.85,hint:'Web安全最佳实践',steps:['输入验证','XSS防护','CSRF防护','数据加密传输']}},
+{tags:['测试','单元测试','e2e','jest'],k:'测试策略',v:{score:0.7,hint:'完整的测试覆盖方案',steps:['单元测试编写','集成测试','E2E测试','CI中运行测试']}},
+{tags:['需求','分析','prd','规划','功能'],k:'需求分析',v:{score:0.75,hint:'将想法转化为技术需求',steps:['收集用户需求','分析可行性','拆分功能模块','编写PRD文档']}},
+];
+
+function classifyIntent(input){
+  const i=input.toLowerCase();
+  if(/^(你好|hi|hello|hey|嗨|哈喽|在吗|在不在)/i.test(i))return'greeting';
+  if(/你(是|叫)(什么|谁|啥)|叫什么|你叫什么|介绍(一下)?(自己|你自己)/i.test(i))return'identity';
+  if(/谢谢|感谢|thanks|thank you|辛苦了|麻烦了/i.test(i))return'thanks';
+  if(/^(帮我|请|可以|能不能|帮我做|帮我写|帮我设计)/i.test(i))return'help';
+  if(/(对比|比较|vs|和.*哪个|还是.*好)/i.test(i))return'compare';
+  if(/(设计|推荐|方案|架构|规划|怎么做)/i.test(i))return'design';
+  if(/(报错|错误|bug|异常|失败|挂了|不行|不能|打不开)/i.test(i))return'diagnose';
+  if(/(修复|怎么修|fix|解决|处理|排查|debug)/i.test(i))return'debug';
+  if(/(怎么|如何|怎样|what.*how|步骤|方法|教程)/i.test(i))return'howto';
+  if(/(解释|什么是|意思|含义|是什么|explain|概念)/i.test(i))return'explain';
+  if(/(技术|框架|语言|工具|数据库|api|前端|后端)/i.test(i))return'knowledge';
+  return'general';
+}
+
+function getKBContext(input){
+  let best=null,bs=0.5;
+  KB.forEach(entry=>{entry.tags.forEach(t=>{if(input.includes(t)){const s=entry.v.score;if(s>bs){bs=s;best=entry}}})});
+  if(best)return best.v;
+  return{hint:'这是一个技术问题，我来分析并给出建议',steps:['理解问题','分析上下文','查找最佳方案','给出具体步骤','总结注意事项']};
+}
+
+function getAIMsg(input){
+  const intent=classifyIntent(input);
+  const modelInfo=MODEL_MAP[currentModel]||{name:'AI'};
+  const ts=getAllSelections();
+  const templates={
+    greeting:`你好！我是 ${modelInfo.name}，很高兴为你服务！👋\n\n我可以帮你：\n- 🏗️ 技术选型和架构设计\n- 💻 代码编写和调试\n-  搜索开源资源\n- 📋 项目规划和管理\n\n有什么需要帮助的吗？`,
+    identity:`我是 **FullStack Studio** 的 AI 助手，当前使用 **${modelInfo.name}** 模型。\n\n我可以理解你的想法，帮你做技术选型、生成开发提示词、搜索开源项目，甚至帮你规划整个项目架构！`,
+    thanks:`不客气！😊 有其他问题随时问我～\n\n如果觉得有帮助，可以继续：\n- 完善技术选型\n- 生成开发提示词\n- 搜索更多资源`,
+    help:ts.length>0?`我看到你已经选择了技术栈：\n\n${ts.map(s=>`- ${s.emoji} **${s.section}**: ${s.name}`).join('\n')}\n\n基于这些选择，我建议你：\n1. 先生成项目提示词\n2. 创建项目文件夹\n3. 运行代码检查\n\n需要我详细解释哪一步？`:`当然可以！让我来帮你分析一下：\n\n💡 **建议步骤**：\n1. 先在「技术选型」中完成所有阶段的选择\n2. 选择设计审美方向\n3. 生成提示词\n4. 创建项目\n\n你想从哪一步开始？`,
+    compare:`好的，让我来分析对比：\n\n**分析维度**：\n- ⚡ 性能和扩展性\n- 📚 生态和社区\n- 🎯 学习曲线\n- 💼 就业市场\n- 🔧 工具支持\n\n💡 **建议**：根据你的项目需求来选择最合适的方案。`,
+    design:`**设计方案分析**：\n\n🎯 根据你的需求，我推荐以下方案：\n1. 选择合适的技术栈\n2. 设计合理的数据库结构\n3. 规划清晰的目录结构\n4. 制定API规范\n5. 考虑部署和运维`,
+    diagnose:`**问题诊断**：\n\n🔍 常见原因分析：\n1. 配置错误 — 检查环境变量\n2. 依赖缺失 — 检查 package.json\n3. 端口冲突 — 检查端口占用\n4. 权限问题 — 检查文件权限\n\n💡 请告诉我具体的错误信息，我可以更精准地帮你定位问题。`,
+    debug:`**调试方案**：\n\n1️⃣ **复现问题** — 确认错误出现的条件和步骤\n2️ **查看日志** — 检查控制台输出和错误堆栈\n3️⃣ **二分排查** — 逐步缩小问题范围\n4️⃣ **修复验证** — 修复后回归测试`,
+    howto:`**操作步骤**：\n\n📋 让我一步步来教你：\n1. 首先确认你的环境\n2. 然后按步骤操作\n3. 注意常见问题\n4. 最后验证结果\n\n具体想了解哪个方面？`,
+    explain:`**概念解释**：\n\n💡 简单来说：\n\n这是一个在Web开发中非常重要的概念。理解它有助于你更好地设计和开发应用。\n\n**核心要点**：\n- 基本原理\n- 常见应用场景\n- 最佳实践\n\n需要我更深入地讲解吗？`,
+    knowledge:`**技术知识**：\n\n 关于这个话题：\n- 核心概念和原理\n- 优缺点分析\n- 适用场景\n- 最佳实践\n- 相关技术对比\n\n💡 建议结合实际项目来学习，效果会更好！`,
+    general:`让我来思考一下你的问题...\n\n💭 这是一个很好的问题！\n\n我的建议：\n1. 明确你的核心需求\n2. 考虑多种方案的优缺点\n3. 选择最适合你当前情况的方案\n\n需要我详细展开某个方面吗？`
+  };
+  return templates[intent]||templates.general;
+}
+
+function sendChat(){
+  const input=document.getElementById('chatInput');
+  const msg=input.value.trim();if(!msg)return;
+  input.value='';
+  
+  // Clear welcome message
+  const list=document.getElementById('chatList');
+  if(list.children.length===1&&list.children[0].querySelector('[style*="text-align:center"]')){list.innerHTML=''}
+  
+  addMsg('user',msg);
+  chatHistory.push({r:'user',c:msg,t:Date.now()});
+  updateMsgCount();
+  
+  const reply=getAIMsg(msg);
+  chatHistory.push({r:'ai',c:reply,t:Date.now()});
+  updateSuggestions();
+  updateMsgCount();
+  
+  setTimeout(()=>{addMsg('ai',reply);updateMsgCount()},400+Math.random()*400);
+}
+
+function chatQuick(msg){
+  document.getElementById('chatInput').value=msg;
+  sendChat();
+}
+
+function clearChat(){
+  chatHistory=[];
+  document.getElementById('chatList').innerHTML='<div style="text-align:center;padding:40px 0;color:var(--text3)"><div style="font-size:36px;margin-bottom:8px">🤖</div><div style="font-size:13px">有什么可以帮你的？</div></div>';
+  document.getElementById('chatSuggestions').innerHTML='';
+  updateMsgCount();
+}
+
+function addMsg(role,content){
+  const list=document.getElementById('chatList');
+  const div=document.createElement('div');
+  div.className='msg '+(role==='user'?'user':'');
+  const modelInfo=MODEL_MAP[currentModel]||{emoji:'🤖',name:'AI'};
+  const avatar=role==='user'?'':'<div class="msg-avatar ai">'+modelInfo.emoji+'</div>';
+  const name=role==='user'?'<div class="msg-name">你</div>':'<div class="msg-name">'+modelInfo.name+'</div>';
+  div.innerHTML=`${avatar}<div class="msg-body">${name}<div class="msg-text">${formatMd(content)}</div></div>`;
+  list.appendChild(div);
+  list.scrollTop=list.scrollHeight;
+}
+
+function formatMd(text){
+  if(!text)return'';
+  return text
+    .replace(/```(\w*)\n([\s\S]*?)```/g,'<pre style="background:var(--bg);padding:10px;border-radius:6px;font-size:12px;overflow-x:auto"><code>$2</code></pre>')
+    .replace(/`([^`]+)`/g,'<code style="background:var(--bg);padding:1px 4px;border-radius:3px;font-size:12px">$1</code>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/^- (.+)$/gm,'<div style="margin-left:8px">• $1</div>')
+    .replace(/^(\d+)\. (.+)$/gm,'<div style="margin-left:8px">$1. $2</div>')
+    .replace(/\n/g,'<br>');
+}
+
+function updateMsgCount(){
+  const el=document.getElementById('chatMsgCount');
+  if(el)el.textContent=chatHistory.length+'条';
+}
+
+function suggestFollowUp(userMsg){
+  const intent=classifyIntent(userMsg);
+  const map={
+    greeting:['你都能做什么？','帮我设计一个电商网站','推荐一些好用的开源项目'],
+    help:['帮我分析技术选型','生成一个React项目提示词','怎么搭建全栈项目？'],
+    design:['推荐适合的技术栈','设计一个数据库方案','如何设计API？'],
+    diagnose:['常见报错解决方案','如何调试前端代码？','性能问题怎么排查？'],
+    howto:['如何配置CI/CD？','怎么部署到Vercel？','如何写单元测试？'],
+    knowledge:['React和Vue哪个好？','PostgreSQL vs MySQL','REST和GraphQL对比'],
+    general:['技术选型建议','帮我生成提示词','搜索开源项目'],
+  };
+  return map[intent]||map.general;
+}
+
+function updateSuggestions(){
+  const last=chatHistory.filter(m=>m.r==='user').pop();
+  if(!last)return;
+  const sugs=suggestFollowUp(last.c);
+  document.getElementById('chatSuggestions').innerHTML=sugs.map(s=>`<button class="followup-btn" onclick="chatQuick('${s.replace(/'/g,"\\'")}')">${s}</button>`).join('');
+}
+
+// ==================== SEARCH ====================
+const SEARCH_DATA={
+  '全部':[{emoji:'',name:'MDN Web Docs',desc:'Web开发权威文档',cat:'文档',tag:'必备'},{emoji:'',name:'Stack Overflow',desc:'程序员问答社区',cat:'社区',tag:''},{emoji:'',name:'GitHub',desc:'全球最大代码托管平台',cat:'平台',tag:'必备'},{emoji:'📋',name:'Roadmap.sh',desc:'技术路线图',cat:'学习',tag:'推荐'},{emoji:'',name:'DevDocs',desc:'多语言API文档聚合',cat:'文档',tag:''},{emoji:'',name:'Can I Use',desc:'浏览器兼容性查询',cat:'工具',tag:'常用'}],
+  '前端':[{emoji:'⚛️',name:'React 文档',desc:'React官方文档',cat:'框架',tag:'热门'},{emoji:'🟢',name:'Vue.js 中文',desc:'Vue中文文档',cat:'框架',tag:'国内'},{emoji:'💨',name:'Tailwind CSS',desc:'实用CSS框架',cat:'CSS',tag:'推荐'},{emoji:'',name:'Next.js',desc:'React全栈框架',cat:'框架',tag:'热门'},{emoji:'🔥',name:'Vite',desc:'下一代构建工具',cat:'工具',tag:'新'}],
+  '后端':[{emoji:'🟩',name:'Node.js',desc:'Node.js官方文档',cat:'运行时',tag:'必备'},{emoji:'',name:'Express',desc:'Node.js Web框架',cat:'框架',tag:'经典'},{emoji:'',name:'FastAPI',desc:'现代Python框架',cat:'框架',tag:'推荐'},{emoji:'',name:'Spring Boot',desc:'Java企业框架',cat:'框架',tag:'企业'},{emoji:'🦀',name:'Actix Web',desc:'Rust高性能框架',cat:'框架',tag:'高性能'}],
+  'AI':[{emoji:'🤖',name:'LangChain',desc:'LLM应用开发框架',cat:'框架',tag:'热门'},{emoji:'',name:'OpenAI API',desc:'OpenAI开发者平台',cat:'平台',tag:'必备'},{emoji:'',name:'Hugging Face',desc:'AI模型社区',cat:'平台',tag:'推荐'},{emoji:'',name:'LlamaIndex',desc:'数据索引框架',cat:'框架',tag:'新'},{emoji:'🖼️',name:'Stable Diffusion',desc:'AI图像生成',cat:'模型',tag:'热门'}],
+  '数据库':[{emoji:'',name:'PostgreSQL',desc:'最强开源关系数据库',cat:'SQL',tag:'首推'},{emoji:'🍃',name:'MongoDB',desc:'流行NoSQL数据库',cat:'NoSQL',tag:'灵活'},{emoji:'⚡',name:'Redis',desc:'内存缓存数据库',cat:'缓存',tag:'必备'},{emoji:'',name:'Prisma',desc:'下一代ORM',cat:'工具',tag:'推荐'},{emoji:'🔥',name:'Supabase',desc:'Firebase替代',cat:'平台',tag:'新'}],
+  '部署':[{emoji:'▲',name:'Vercel',desc:'前端部署首选',cat:'平台',tag:'推荐'},{emoji:'',name:'Railway',desc:'全栈云平台',cat:'平台',tag:'新'},{emoji:'',name:'Docker Hub',desc:'容器镜像仓库',cat:'工具',tag:'必备'},{emoji:'🐙',name:'GitHub Actions',desc:'CI/CD自动化',cat:'CI/CD',tag:'热门'},{emoji:'☁️',name:'Cloudflare',desc:'CDN和边缘计算',cat:'CDN',tag:'推荐'}],
+  '设计':[{emoji:'',name:'Dribbble',desc:'设计师作品社区',cat:'灵感',tag:'推荐'},{emoji:'',name:'Figma',desc:'在线设计工具',cat:'工具',tag:'必备'},{emoji:'',name:'unDraw',desc:'免费插画库',cat:'素材',tag:'免费'},{emoji:'',name:'Heroicons',desc:'SVG图标库',cat:'图标',tag:'免费'},{emoji:'',name:'Color Hunt',desc:'配色方案灵感',cat:'配色',tag:'推荐'}],
+  '学习':[{emoji:'',name:'freeCodeCamp',desc:'免费编程学习',cat:'平台',tag:'免费'},{emoji:'',name:'LeetCode',desc:'算法练习平台',cat:'算法',tag:'面试'},{emoji:'',name:'掘金',desc:'中文技术社区',cat:'社区',tag:'国内'},{emoji:'📺',name:'YouTube Dev',desc:'开发者视频',cat:'视频',tag:''},{emoji:'',name:'Coursera',desc:'在线课程平台',cat:'课程',tag:'名校'}],
+};
+
+function renderSearchResults(cat='全部'){
+  const items=SEARCH_DATA[cat]||SEARCH_DATA['全部'];
+  const c=document.getElementById('searchResults');
+  c.innerHTML=items.map(it=>{
+    const tags=(it.tag?`<span class="search-item-tag">${it.tag}</span>`:'')+`<span class="search-item-tag cat">${it.cat}</span>`;
+    return`<div class="search-item"><div class="search-item-icon">${it.emoji}</div><div class="search-item-body"><div class="search-item-title">${it.name}</div><div class="search-item-desc">${it.desc}</div><div class="search-item-tags">${tags}</div></div></div>`;
+  }).join('');
+}
+
+function renderSearchCats(){
+  const cats=Object.keys(SEARCH_DATA);
+  document.getElementById('searchCats').innerHTML=cats.map((c,i)=>`<button class="search-cat${i===0?' active':''}" onclick="switchSearchCat('${c}',this)">${c}</button>`).join('');
+}
+function switchSearchCat(cat,btn){
+  document.querySelectorAll('.search-cat').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  renderSearchResults(cat);
+}
+function filterSearch(q){
+  q=q.toLowerCase().trim();
+  if(!q){renderSearchResults();return}
+  let results=[];
+  Object.values(SEARCH_DATA).forEach(items=>items.forEach(it=>{
+    if((it.name+it.desc+it.cat+it.tag).toLowerCase().includes(q))results.push(it);
+  }));
+  const seen=new Set();results=results.filter(r=>{if(seen.has(r.name))return false;seen.add(r.name);return true});
+  document.getElementById('searchResults').innerHTML=results.length?results.map(it=>{
+    const tags=(it.tag?`<span class="search-item-tag">${it.tag}</span>`:'')+`<span class="search-item-tag cat">${it.cat}</span>`;
+    return`<div class="search-item"><div class="search-item-icon">${it.emoji}</div><div class="search-item-body"><div class="search-item-title">${it.name}</div><div class="search-item-desc">${it.desc}</div><div class="search-item-tags">${tags}</div></div></div>`;
+  }).join(''):'<div style="text-align:center;padding:40px;color:var(--text3)">没有找到相关资源</div>';
+}
+
+// ==================== TOOLBOX ====================
+const TOOLS={
+  '代码质量':[{emoji:'',name:'ESLint',desc:'代码检查工具'},{emoji:'',name:'Prettier',desc:'代码格式化'},{emoji:'🔍',name:'SonarQube',desc:'代码质量平台'},{emoji:'',name:'Husky',desc:'Git钩子管理'}],
+  '开发效率':[{emoji:'',name:'VS Code',desc:'最佳编辑器'},{emoji:'',name:'Git',desc:'版本控制'},{emoji:'',name:'Docker',desc:'容器化'},{emoji:'📝',name:'Postman',desc:'API测试'}],
+  '设计工具':[{emoji:'',name:'Figma',desc:'UI设计'},{emoji:'',name:'Sketch',desc:'Mac设计'},{emoji:'',name:'Adobe XD',desc:'原型设计'},{emoji:'',name:'Coolors',desc:'配色工具'}],
+  '测试工具':[{emoji:'',name:'Jest',desc:'单元测试'},{emoji:'',name:'Cypress',desc:'E2E测试'},{emoji:'',name:'Vitest',desc:'Vite测试'},{emoji:'',name:'Playwright',desc:'自动化测试'}],
+  '监控运维':[{emoji:'📊',name:'Grafana',desc:'监控面板'},{emoji:'',name:'Sentry',desc:'错误追踪'},{emoji:'',name:'Prometheus',desc:'指标采集'},{emoji:'📋',name:'ELK Stack',desc:'日志分析'}],
+  '协作沟通':[{emoji:'',name:'Notion',desc:'知识库'},{emoji:'',name:'Linear',desc:'项目管理'},{emoji:'',name:'Slack',desc:'团队沟通'},{emoji:'',name:'Loom',desc:'视频消息'}],
+  'AI工具':[{emoji:'',name:'Claude Code',desc:'AI编程助手'},{emoji:'',name:'Cursor',desc:'AI编辑器'},{emoji:'',name:'GitHub Copilot',desc:'AI代码补全'},{emoji:'',name:'v0',desc:'AI UI生成'}],
+};
+
+function renderToolbox(){
+  const c=document.getElementById('toolboxGrid');
+  let h='';
+  Object.entries(TOOLS).forEach(([cat,items])=>{
+    h+=`<div class="tool-category"><div class="tool-cat-title">${cat}</div><div class="tool-items">`;
+    items.forEach(it=>{h+=`<div class="tool-card"><span class="tool-card-emoji">${it.emoji}</span><span class="tool-card-name">${it.name}</span><span class="tool-card-desc">${it.desc}</span></div>`});
+    h+='</div></div>';
+  });
+  c.innerHTML=h;
+}
+
+// ==================== GITHUB ====================
+function fetchGitHub(){
+  const input=document.getElementById('ghInput');
+  if(!input.value.trim()){showToast('请输入GitHub用户名','info');return}
+  showToast('加载中...','info');
+  fetch(`https://api.github.com/users/${input.value.trim()}/repos?sort=updated&per_page=12`)
+    .then(r=>{if(!r.ok)throw new Error();return r.json()})
+    .then(repos=>{
+      const c=document.getElementById('ghResults');
+      c.innerHTML=repos.map(r=>`<div class="gh-repo-card"><div class="gh-repo-name">${r.name}</div><div class="gh-repo-desc">${r.description||'暂无描述'}</div><div class="gh-repo-meta"><span>⭐ ${r.stargazers_count}</span><span>${r.language||'N/A'}</span><span>${new Date(r.updated_at).toLocaleDateString('zh-CN')}</span></div></div>`).join('');
+      showToast(`找到 ${repos.length} 个仓库`,'success');
+    })
+    .catch(()=>{showToast('加载失败，请检查用户名','error')});
+}
+
+// ==================== OPEN SOURCE ====================
+const OSS_PROJECTS=[
+  {cat:'AI',emoji:'',name:'LangChain',stars:'95k+',desc:'构建LLM应用的框架',tags:['Python','LLM','Agent']},
+  {cat:'AI',emoji:'',name:'Ollama',stars:'98k+',desc:'本地运行大模型',tags:['Go','LLM','本地']},
+  {cat:'AI',emoji:'',name:'Open WebUI',stars:'52k+',desc:'自托管AI界面',tags:['Svelte','LLM']},
+  {cat:'AI',emoji:'',name:'vLLM',stars:'38k+',desc:'高性能LLM推理',tags:['Python','GPU','推理']},
+  {cat:'前端',emoji:'⚛️',name:'Next.js',stars:'125k+',desc:'React全栈框架',tags:['React','SSR','全栈']},
+  {cat:'前端',emoji:'',name:'Nuxt 3',stars:'54k+',desc:'Vue全栈框架',tags:['Vue','SSR','全栈']},
+  {cat:'前端',emoji:'💨',name:'Astro',stars:'46k+',desc:'内容优先Web框架',tags:['多框架','SSG','快速']},
+  {cat:'后端',emoji:'🦕',name:'Deno',stars:'97k+',desc:'安全的JS运行时',tags:['Rust','TS','安全']},
+  {cat:'后端',emoji:'',name:'Bun',stars:'74k+',desc:'极速JS运行时',tags:['Zig','快速','兼容']},
+  {cat:'后端',emoji:'',name:'Hono',stars:'20k+',desc:'超轻量Web框架',tags:['TS','Edge','多运行时']},
+  {cat:'全栈',emoji:'',name:'Supabase',stars:'72k+',desc:'Firebase替代方案',tags:['Postgres','Auth','实时']},
+  {cat:'全栈',emoji:'🔥',name:'Appwrite',stars:'42k+',desc:'开源后端平台',tags:['Docker','API','Auth']},
+  {cat:'全栈',emoji:'',name:'PocketBase',stars:'39k+',desc:'单文件后端',tags:['Go','SQLite','轻量']},
+  {cat:'数据库',emoji:'',name:'Turso',stars:'10k+',desc:'边缘SQLite数据库',tags:['SQLite','Edge','libSQL']},
+  {cat:'数据库',emoji:'⚡',name:'DragonflyDB',stars:'26k+',desc:'Redis替代品',tags:['C++','高性能','缓存']},
+  {cat:'工具',emoji:'🐙',name:'Biome',stars:'14k+',desc:'JS/TS工具链',tags:['Rust','Lint','Format']},
+  {cat:'工具',emoji:'',name:'Turborepo',stars:'26k+',desc:'Monorepo管理',tags:['Go','缓存','并行']},
+  {cat:'部署',emoji:'📦',name:'Coolify',stars:'32k+',desc:'自托管PaaS',tags:['Docker','自托管','部署']},
+  {cat:'部署',emoji:'🐳',name:'Dokploy',stars:'14k+',desc:'Docker部署平台',tags:['Docker','CI/CD','简单']},
+  {cat:'设计',emoji:'',name:'Cal.com',stars:'30k+',desc:'开源日程调度',tags:['React','日历','开源']},
+  {cat:'设计',emoji:'📄',name:'Documenso',stars:'8k+',desc:'开源文档签名',tags:['React','PDF','签名']},
+  {cat:'学习',emoji:'',name:'The Odin Project',stars:'10k+',desc:'免费Web开发课程',tags:['免费','全栈','教程']},
+];
+
+function renderOSS(filter='全部'){
+  const filtered=filter==='全部'?OSS_PROJECTS:OSS_PROJECTS.filter(p=>p.cat===filter);
+  document.getElementById('ossResults').innerHTML=filtered.map(p=>`<div class="oss-card"><div class="oss-card-head"><span class="oss-card-emoji">${p.emoji}</span><span class="oss-card-name">${p.name}</span><span class="oss-card-stars">⭐ ${p.stars}</span></div><div class="oss-card-desc">${p.desc}</div><div class="oss-card-tags">${p.tags.map(t=>`<span class="oss-tag">${t}</span>`).join('')}</div></div>`).join('');
+}
+
+function renderOssCats(){
+  const cats=['全部',...new Set(OSS_PROJECTS.map(p=>p.cat))];
+  document.getElementById('ossCats').innerHTML=cats.map((c,i)=>`<button class="oss-cat${i===0?' active':''}" onclick="filterOSS('${c}',this)">${c}</button>`).join('');
+}
+function filterOSS(cat,btn){
+  document.querySelectorAll('.oss-cat').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  renderOSS(cat);
+}
+
+// ==================== TAB SWITCHING ====================
+function switchTab(id){
+  document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(t=>{if(t.getAttribute('onclick').includes("'"+id+"'"))t.classList.add('active')});
+  document.getElementById('tab-'+id).classList.add('active');
+}
+
+// ==================== TOAST ====================
+function showToast(msg,type='info'){
+  const container=document.getElementById('toastContainer');
+  const toast=document.createElement('div');
+  toast.className='toast';
+  toast.textContent=msg;
+  toast.classList.add(type);
+  container.appendChild(toast);
+  requestAnimationFrame(()=>toast.classList.add('show'));
+  setTimeout(()=>{toast.classList.add('exit');setTimeout(()=>toast.remove(),250)},2200);
+}
+
+// ==================== API KEY MANAGEMENT ====================
+function toggleApiModal(){document.getElementById('apiModal').classList.toggle('show')}
+function saveApiKeys(){
+  if(!window.__AI_KEYS__)window.__AI_KEYS__={};
+  document.querySelectorAll('.api-key-input').forEach(inp=>{
+    const provider=inp.dataset.provider;
+    const key=inp.value.trim();
+    if(key)window.__AI_KEYS__[provider]=key;
+    else delete window.__AI_KEYS__[provider];
+  });
+  try{localStorage.setItem('fs_api_keys',JSON.stringify(window.__AI_KEYS__||{}))}catch(e){}
+  toggleApiModal();
+  showToast('API密钥已保存！','success');
+  updateApiKeyBtn();
+}
+function loadApiKeys(){
+  try{
+    const saved=localStorage.getItem('fs_api_keys');
+    if(saved){window.__AI_KEYS__=JSON.parse(saved);
+      Object.entries(window.__AI_KEYS__).forEach(([p,k])=>{
+        const inp=document.querySelector(`.api-key-input[data-provider="${p}"]`);
+        if(inp)inp.value=k;
+      });
+    }
+  }catch(e){}
+  updateApiKeyBtn();
+}
+function updateApiKeyBtn(){
+  const btn=document.querySelector('.apikey-btn');
+  const hasKeys=window.__AI_KEYS__&&Object.keys(window.__AI_KEYS__).length>0;
+  if(hasKeys){btn.classList.add('has-key');btn.textContent='🟢 API已配置'}
+  else{btn.classList.remove('has-key');btn.textContent='🔑 API Keys'}
+}
+
+// ==================== MODEL PICKER ====================
+function toggleModelPicker(){document.getElementById('modelPickerOverlay').classList.toggle('show')}
+function selectModel(id){
+  currentModel=id;
+  const m=MODEL_MAP[id];
+  document.getElementById('currentModelEmoji').textContent=m.emoji;
+  document.getElementById('currentModelName').textContent=m.name;
+  document.getElementById('chatModelBadge').textContent=m.name;
+  renderModelPicker();
+  toggleModelPicker();
+  showToast(`已切换到 ${m.name}`,'success');
+}
+
+// ==================== INITIALIZATION ====================
+function init(){
+  renderDesignGrid();
+  renderSearchCats();
+  renderSearchResults();
+  renderToolbox();
+  renderOssCats();
+  renderOSS();
+  loadApiKeys();
+  updateCurrentTime();
+  setInterval(updateCurrentTime,60000);
+  // Update chat model badge
+  const cm=MODEL_MAP[currentModel];
+  if(cm)document.getElementById('chatModelBadge').textContent=cm.name;
+}
+
+function updateCurrentTime(){
+  const el=document.getElementById('currentTime');
+  if(el)el.textContent=new Date().toLocaleString('zh-CN',{hour:'2-digit',minute:'2-digit',month:'short',day:'numeric'});
+}
+
+// Start
+init();
+</script>
+</body>
+</html>

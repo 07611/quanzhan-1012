@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全栈 AI 工作台 · Fullstack Studio</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232563eb'/%3E%3Ctext x='32' y='44' font-size='32' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'%3EF%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #fafafa; --card: #fff; --border: #e4e4e7;
+    --text: #1a1b1c; --muted: #71717a; --primary: #2563eb;
+    --primary-light: #eff6ff; --success: #35705a; --warn: #9a6a2f;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 14px; line-height: 1.6;
+  }
+  button { font-family: inherit; }
+
+  /* ===== 顶部栏 ===== */
+  .topbar {
+    background: var(--card); border-bottom: 1px solid var(--border);
+    padding: 14px 28px; display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 0; z-index: 50; flex-wrap: wrap;
+  }
+  .logo { font-size: 17px; font-weight: 700; margin-right: 8px; }
+  .logo span { color: var(--primary); }
+  .search-wrap { flex: 1; max-width: 420px; position: relative; }
+  .search-wrap input {
+    width: 100%; padding: 8px 12px 8px 34px; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 13px; outline: none; background: var(--bg);
+  }
+  .search-wrap input:focus { border-color: var(--primary); background: #fff; }
+  .search-wrap svg {
+    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+    width: 15px; height: 15px; color: #a1a1aa; pointer-events: none;
+  }
+  .model-pill {
+    display: flex; align-items: center; gap: 6px; padding: 6px 12px;
+    border: 1px solid var(--border); border-radius: 999px;
+    background: var(--bg); font-size: 12px; color: var(--muted); cursor: pointer;
+  }
+  .model-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: #d4d4d8; }
+  .model-pill.connected .dot { background: var(--success); }
+  .btn {
+    padding: 7px 14px; border: 1px solid var(--border); border-radius: 8px;
+    background: #fff; font-size: 13px; cursor: pointer; transition: all .12s;
+  }
+  .btn:hover { border-color: var(--primary); color: var(--primary); }
+  .btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .btn.primary:hover { background: #1d4ed8; }
+
+  /* ===== Tab 导航 ===== */
+  .tabs {
+    background: var(--card); border-bottom: 1px solid var(--border);
+    padding: 0 28px; display: flex; gap: 4px;
+  }
+  .tab {
+    padding: 12px 18px; font-size: 14px; cursor: pointer;
+    border: none; background: none; color: var(--muted);
+    border-bottom: 2px solid transparent; font-weight: 500;
+  }
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+  .tab:hover { color: var(--text); }
+
+  .view { display: none; padding: 24px 28px; max-width: 1280px; margin: 0 auto; }
+  .view.active { display: block; }
+
+  /* ===== 通用卡片 ===== */
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+  }
+  .step-title { font-size: 18px; font-weight: 700; margin: 0 0 4px; }
+  .step-desc { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
+  .group-label { font-size: 13px; color: var(--muted); margin: 18px 0 8px; font-weight: 500; }
+
+  .opt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  @media (min-width: 900px) {
+    .opt-grid.four { grid-template-columns: repeat(4, 1fr); }
+    .opt-grid.five { grid-template-columns: repeat(3, 1fr); }
+  }
+  .opt {
+    border: 1px solid var(--border); border-radius: 10px; padding: 12px;
+    cursor: pointer; transition: all .12s; background: #fff; position: relative;
+  }
+  .opt:hover { border-color: #a1a1aa; }
+  .opt.selected { border-color: var(--primary); background: var(--primary-light); }
+  .opt-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 3px; }
+  .opt-name { font-size: 14px; font-weight: 600; }
+  .opt-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .opt-desc { font-size: 11.5px; color: var(--muted); line-height: 1.5; display: block; }
+  .opt-tags { margin-top: 6px; display: flex; gap: 4px; flex-wrap: wrap; }
+  .opt-tag { font-size: 10px; color: #4f6b9a; background: #eef2f7; padding: 1px 7px; border-radius: 999px; }
+  .opt .check {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--primary); color: #fff; font-size: 10px; font-weight: 700;
+    display: none; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .opt.selected .check { display: flex; }
+  .opt .info-btn {
+    width: 20px; height: 20px; border-radius: 50%; padding: 0;
+    border: 1px solid var(--border); background: #fff; color: #71717a;
+    font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .opt .info-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+
+  .step-nav {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);
+  }
+  .btn-ghost { padding: 8px 16px; border: 1px solid var(--border); background: #fff; border-radius: 8px; cursor: pointer; font-size: 13px; }
+  .btn-ghost:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-next { padding: 9px 20px; background: var(--primary); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; }
+  .progress { font-size: 12px; color: var(--muted); }
+  .recommend-btn { font-size: 12px; color: var(--primary); background: var(--primary-light); border: 1px dashed var(--primary); padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+
+  /* 汇总 */
+  .summary-flow {
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    background: var(--bg); padding: 14px; border-radius: 10px; margin-bottom: 16px;
+  }
+  .flow-node { padding: 6px 12px; background: #fff; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; }
+  .flow-arrow { color: var(--muted); }
+  .sum-row { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+  .sum-label { width: 110px; color: var(--muted); font-size: 12px; flex-shrink: 0; padding-top: 2px; }
+  .sum-value { flex: 1; font-size: 13px; }
+  .sum-value .chip { display: inline-block; padding: 3px 10px; background: var(--primary-light); color: var(--primary); border-radius: 6px; margin: 2px 4px 2px 0; font-size: 12px; }
+
+  /* ===== AI 助手 Tab ===== */
+  .chat-layout { display: grid; grid-template-columns: 1fr 280px; gap: 16px; height: calc(100vh - 180px); }
+  .chat-main { display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 20px; }
+  .msg { margin-bottom: 14px; display: flex; gap: 10px; }
+  .msg.user { justify-content: flex-end; }
+  .msg-bubble { max-width: 80%; padding: 10px 14px; border-radius: 10px; font-size: 13px; line-height: 1.65; }
+  .msg.user .msg-bubble { background: var(--primary); color: #fff; }
+  .msg.ai .msg-bubble { background: var(--bg); border: 1px solid var(--border); }
+  .msg-bubble pre { background: #1a1b1c; color: #e4e4e7; padding: 10px; border-radius: 6px; overflow-x: auto; font-size: 12px; margin: 8px 0; }
+  .msg-bubble code { background: rgba(0,0,0,.06); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  .msg.ai .msg-bubble code { background: #e4e4e7; }
+  .msg-bubble pre code { background: none; padding: 0; }
+  .msg-bubble a { color: var(--primary); }
+  .msg-bubble ul { margin: 6px 0; padding-left: 20px; }
+  .msg-bubble h4 { margin: 10px 0 4px; font-size: 13px; }
+  .chat-input { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border); background: #fff; }
+  .chat-input textarea {
+    flex: 1; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px;
+    font-size: 13px; font-family: inherit; resize: none; height: 44px; outline: none;
+  }
+  .chat-input textarea:focus { border-color: var(--primary); }
+
+  .chat-side { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+  .prompt-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px; cursor: pointer; font-size: 12.5px; transition: all .12s;
+  }
+  .prompt-card:hover { border-color: var(--primary); background: var(--primary-light); }
+  .prompt-card .pc-title { font-weight: 600; margin-bottom: 3px; font-size: 13px; }
+  .prompt-card .pc-desc { color: var(--muted); font-size: 11.5px; line-height: 1.45; }
+
+  /* ===== 工具箱 Tab ===== */
+  .tool-cat-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+  .cat-pill {
+    padding: 6px 14px; border: 1px solid var(--border); border-radius: 999px;
+    background: #fff; font-size: 12.5px; cursor: pointer;
+  }
+  .cat-pill.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .tool-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px; display: flex; flex-direction: column; gap: 6px;
+  }
+  .tool-name { font-weight: 600; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
+  .tool-url { color: var(--primary); font-size: 11.5px; text-decoration: none; }
+  .tool-url:hover { text-decoration: underline; }
+  .tool-desc { font-size: 12px; color: var(--muted); line-height: 1.5; flex: 1; }
+  .tool-free { font-size: 11px; color: var(--success); }
+  .tool-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+  .tool-tag { font-size: 10px; background: #eef2f7; color: #4f6b9a; padding: 1px 7px; border-radius: 999px; }
+
+  /* ===== 弹窗 ===== */
+  .modal-mask {
+    position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 100;
+    display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-mask.show { display: flex; }
+  .modal {
+    background: #fff; border-radius: 14px; width: 100%; max-width: 560px;
+    max-height: 85vh; overflow-y: auto; padding: 24px;
+  }
+  .modal h3 { margin: 0 0 12px; font-size: 16px; }
+  .modal-close { float: right; border: none; background: none; font-size: 20px; cursor: pointer; color: var(--muted); }
+  .form-row { margin-bottom: 14px; }
+  .form-row label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .form-row input, .form-row select, .form-row textarea {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 13px; font-family: inherit; outline: none;
+  }
+  .form-row input:focus, .form-row select:focus { border-color: var(--primary); }
+  .free-models { background: var(--bg); border-radius: 8px; padding: 12px; margin: 10px 0; font-size: 12px; }
+  .free-modules a { color: var(--primary); }
+  .detail-body { font-size: 13px; line-height: 1.7; }
+  .detail-body h4 { margin: 10px 0 4px; color: var(--primary); }
+  .detail-body .src-hint { margin-top: 12px; padding: 8px 10px; background: #eef2f7; border-radius: 6px; font-size: 11.5px; color: #4f6b9a; }
+</style>
+</head>
+<body>
+
+<!-- ===== 顶部栏 ===== -->
+<div class="topbar">
+  <div class="logo">全栈<span>AI</span>工作台</div>
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+    <input id="globalSearch" placeholder="搜索技术、工具、问题…">
+  </div>
+  <button class="model-pill" id="modelPill" onclick="openSettings()">
+    <span class="dot"></span><span id="modelPillText">未设置模型</span>
+  </button>
+  <button class="btn" onclick="openCheckCode()">检查代码</button>
+  <button class="btn" onclick="openSettings()">设置</button>
+</div>
+
+<!-- ===== Tab ===== -->
+<div class="tabs">
+  <button class="tab active" data-view="selector">技术选型</button>
+  <button class="tab" data-view="chat">AI 助手</button>
+  <button class="tab" data-view="project">项目生成</button>
+  <button class="tab" data-view="tools">工具箱</button>
+</div>
+
+<!-- ===== View 1: 技术选型 ===== -->
+<div class="view active" id="view-selector">
+  <div class="card" style="margin-bottom:16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:14px 18px;">
+    <strong style="font-size:13px;">AI 帮我选：</strong>
+    <input id="aiFillInput" placeholder="描述你的项目，如：做一个社团活动报名网站，用户注册登录、报名活动，管理员发布活动" style="flex:1;min-width:260px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;outline:none;">
+    <button class="btn primary" onclick="aiFillStack()">分析并自动勾选</button>
+  </div>
+  <div class="card" id="selectorCard"></div>
+</div>
+
+<!-- ===== View 2: AI 助手 ===== -->
+<div class="view" id="view-chat">
+  <div class="chat-layout">
+    <div class="chat-main">
+      <div class="chat-messages" id="chatMessages">
+        <div class="msg ai"><div class="msg-bubble">你好，我是你的全栈架构师助手。先点右上角「设置」填入 API Key（推荐 DeepSeek / 硅基流动，免费额度够用），然后直接问我技术问题，或者点右侧快捷问题。</div></div>
+      </div>
+      <div class="chat-input">
+        <textarea id="chatInput" placeholder="描述你的项目或问题，回车发送（Shift+回车换行）"></textarea>
+        <button class="btn primary" onclick="sendMessage()">发送</button>
+      </div>
+    </div>
+    <div class="chat-side" id="chatSide"></div>
+  </div>
+</div>
+
+<!-- ===== View 3: 项目生成 =====
+<div class="view" id="view-project">
+  <div class="card" style="margin-bottom:16px;">
+    <h2 class="step-title">项目生成器</h2>
+    <p class="step-desc">把你前面选的技术栈和想法融合成一份完整提示词，直接喂给 Claude Code / Cursor / v0，或者一键在本地建项目文件夹。</p>
+
+    <div class="form-row">
+      <label>项目英文名（kebab-case，用作文件夹名）</label>
+      <input id="projName" placeholder="如 wander-china" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;outline:none;">
+    </div>
+    <div class="form-row">
+      <label>一句话项目想法（会写进提示词里）</label>
+      <textarea id="projIdea" rows="3" placeholder="如：一个面向大学生的社团活动报名平台，支持活动列表、详情、报名、管理员发布，用 Next.js + MySQL" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;"></textarea>
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;">
+      <button class="btn primary" onclick="buildPrompt()">① 生成完整提示词</button>
+      <button class="btn" onclick="copyPrompt()">复制提示词</button>
+      <button class="btn" onclick="sendPromptToAI()">发给 AI 助手</button>
+      <button class="btn" onclick="createLocalProject()">② 在本地建项目文件夹</button>
+    </div>
+
+    <div class="form-row">
+      <label>完整提示词（生成后可直接复制）</label>
+      <textarea id="promptOutput" rows="14" readonly style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:ui-monospace,Menlo,monospace;outline:none;background:var(--bg);"></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- ===== View 4: 工具箱 ===== -->
+<div class="view" id="view-tools">
+  <div class="card" style="margin-bottom:16px;padding:14px 18px;">
+    <div style="font-weight:600;margin-bottom:8px;">GitHub 开源项目搜索</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <input id="ghSearch" placeholder="搜开源项目，如 admin dashboard / react admin / 全栈模板" style="flex:1;min-width:260px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
+      <button class="btn primary" onclick="searchGitHub()">搜索</button>
+    </div>
+    <div style="margin-top:8px;font-size:12px;color:var(--muted);">
+      也可输入 GitHub 用户名查看他的公开仓库（如 doubao 或 facebook）。
+      <input id="ghUser" placeholder="GitHub 用户名" style="margin-left:8px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;">
+      <button class="btn" style="padding:4px 10px;font-size:12px;margin-left:4px;" onclick="searchGitHubUser()">查用户项目</button>
+    </div>
+    <div id="ghResult" style="margin-top:12px;"></div>
+  </div>
+  <div class="tool-cat-bar" id="toolCatBar"></div>
+  <div class="tool-grid" id="toolGrid"></div>
+</div>
+
+<!-- ===== 详情/设置弹窗 ===== -->
+<div class="modal-mask" id="modalMask">
+  <div class="modal" id="modalBox"></div>
+</div>
+
+<script>
+/* ============ 数据区 ============ */
+
+/* 默认系统提示词 */
+const SYSTEM_PROMPT = `你是一名资深全栈架构师和独立开发顾问，用户是高职学生和社团负责人，正在做第一个完整全栈项目。
+回答要求：
+1. 简洁直接，不要套话；优先推荐免费、便宜、好上手的方案。
+2. 给具体名字（框架/工具/官网），并说清为什么推荐、适合什么场景。
+3. 用户问部署/性能/调试时，给分步操作（第一步做什么、第二步做什么）。
+4. 涉及开源项目时给 GitHub 关键词或官网链接。
+5. 用 Markdown：加粗重点、用代码块包命令、用列表分步。
+6. 国内用户优先推荐国内能直连的服务（阿里云/腾讯云/DeepSeek/硅基流动），海外服务要说明是否需要代理。`;
+
+/* 预设快捷问题 */
+const QUICK_PROMPTS = [
+  { title: "推荐技术栈", desc: "我想做一个社团活动报名网站，帮我从零推荐技术栈", q: "我要做一个社团活动报名网站，用户可以注册、浏览活动、报名，管理员能发布活动。请帮我从零推荐一套完整技术栈（前端/后端/数据库/部署），要简单好上手、尽量免费。" },
+  { title: "最便宜部署", desc: "云服务怎么部署最便宜最快？学生党预算有限", q: "学生党做个人项目，云服务器怎么部署最便宜最快？请对比 Vercel / Railway / Render / 阿里云学生机 / 腾讯云学生机，说清各自免费额度、适合场景、怎么一键部署。" },
+  { title: "运行慢排查", desc: "网页/接口运行慢，帮我排查可能原因和工具", q: "我的网页打开慢、接口响应慢，帮我系统排查：从前端资源、后端 SQL、数据库索引、服务器配置、CDN 几个方向，给出用什么工具测、怎么定位、常见优化手段。" },
+  { title: "免费 AI 模型", desc: "想自己接大模型 API，有哪些免费选项？", q: "我想在自己的项目里接入大模型 API，有哪些免费或便宜的选择？请对比 DeepSeek、硅基流动、Groq、OpenRouter，说清注册地址、免费额度、模型名、是否需要代理。" },
+  { title: "新手避坑", desc: "第一次做全栈项目，最容易踩哪些坑？", q: "高职学生第一次独立做全栈项目，最容易踩哪些坑？从选型、数据库设计、部署、安全几个方面提醒我，给出具体避坑建议。" },
+  { title: "CORS 跨域", desc: "前端调后端报 CORS 错误怎么解决？", q: "我的前端 fetch 后端接口报 CORS 跨域错误，请分场景告诉我：开发环境怎么配、生产环境怎么解决、Nginx 反向代理怎么配，给具体代码。" },
+  { title: "数据库连不上", desc: "后端连不上数据库，排查步骤是什么？", q: "后端代码连不上数据库（MySQL/PostgreSQL），按网络、账号密码、连接串、防火墙、连接池几个方向给排查步骤，每条给一个具体命令或检查点。" },
+  { title: "域名 HTTPS", desc: "买完域名怎么配到自己的网站？HTTPS 怎么搞？", q: "我买了域名，部署在自己的服务器/平台上，怎么把域名绑上去？DNS 怎么配？HTTPS 免费证书怎么申请？国内还要不要备案？给完整步骤。" },
+];
+
+/* 内置工具箱 */
+const TOOLS = [
+  { cat: "deploy", name: "Vercel", url: "https://vercel.com", desc: "前端/Next.js 一键部署，git push 自动上线", free: "Hobby 免费", tags: ["前端","Serverless"] },
+  { cat: "deploy", name: "Netlify", url: "https://netlify.com", desc: "静态站自动部署，拖文件夹就能上线", free: "100GB/月免费", tags: ["静态站"] },
+  { cat: "deploy", name: "Cloudflare Pages", url: "https://pages.cloudflare.com", desc: "全球 CDN，免费额度最大", free: "无限静态请求", tags: ["全球CDN"] },
+  { cat: "deploy", name: "Railway", url: "https://railway.app", desc: "后端+数据库一体化，支持 Docker", free: "$5/月额度", tags: ["后端","数据库"] },
+  { cat: "deploy", name: "Render", url: "https://render.com", desc: "免费后端托管（15分钟不活动会休眠）", free: "免费 Web Service", tags: ["后端"] },
+  { cat: "deploy", name: "阿里云 ECS", url: "https://www.aliyun.com", desc: "国内服务器，学生机超便宜", free: "学生机约9.5元/月", tags: ["国内","学生"] },
+  { cat: "deploy", name: "腾讯云", url: "https://cloud.tencent.com", desc: "国内云，学生优惠套餐", free: "学生机约11元/月", tags: ["国内","学生"] },
+
+  { cat: "db", name: "Supabase", url: "https://supabase.com", desc: "Firebase 开源替代，直接给你一个 PostgreSQL", free: "500MB 数据库免费", tags: ["PostgreSQL","Auth"] },
+  { cat: "db", name: "Neon", url: "https://neon.tech", desc: "Serverless PostgreSQL，支持分支", free: "0.5GB 免费", tags: ["PostgreSQL"] },
+  { cat: "db", name: "MongoDB Atlas", url: "https://www.mongodb.com/atlas", desc: "云端 MongoDB 官方托管", free: "512MB 免费", tags: ["NoSQL"] },
+  { cat: "db", name: "PlanetScale", url: "https://planetscale.com", desc: "Serverless MySQL", free: "免费开发计划", tags: ["MySQL"] },
+
+  { cat: "debug", name: "Lighthouse", url: "https://developer.chrome.com/docs/lighthouse", desc: "Chrome 内置性能/SEO/可访问性审计", free: "免费", tags: ["性能"] },
+  { cat: "debug", name: "WebPageTest", url: "https://www.webpagetest.org", desc: "全球各地节点加载测速", free: "免费", tags: ["性能","测速"] },
+  { cat: "debug", name: "Chrome DevTools", url: "https://developer.chrome.com/docs/devtools", desc: "Performance/Memory/Network 面板排查", free: "免费", tags: ["调试"] },
+  { cat: "debug", name: "Sentry", url: "https://sentry.io", desc: "前端错误自动捕获上报", free: "5000事件/月免费", tags: ["错误监控"] },
+
+  { cat: "api", name: "Postman", url: "https://www.postman.com", desc: "API 调试老牌工具", free: "免费版", tags: ["API"] },
+  { cat: "api", name: "Thunder Client", url: "https://www.thunderclient.com", desc: "VS Code 内 API 测试插件", free: "免费", tags: ["VSCode","API"] },
+  { cat: "api", name: "MockApi", url: "https://mockapi.io", desc: "快速造假数据 API 给前端联调", free: "免费", tags: ["Mock"] },
+
+  { cat: "frontend", name: "Shadcn/ui", url: "https://ui.shadcn.com", desc: "可复制粘贴的现代组件库", free: "免费", tags: ["组件"] },
+  { cat: "frontend", name: "Tailwind CSS", url: "https://tailwindcss.com", desc: "原子化 CSS，写样式不用离开 HTML", free: "免费", tags: ["样式"] },
+  { cat: "frontend", name: "Lucide Icons", url: "https://lucide.dev", desc: "免费开源图标库", free: "免费", tags: ["图标"] },
+  { cat: "frontend", name: "Figma", url: "https://figma.com", desc: "UI 设计稿，个人免费", free: "个人免费", tags: ["设计"] },
+
+  { cat: "ai", name: "DeepSeek", url: "https://platform.deepseek.com", desc: "国内最强便宜模型，代码能力强", free: "注册送500万 tokens", tags: ["LLM","国内"] },
+  { cat: "ai", name: "硅基流动", url: "https://siliconflow.cn", desc: "国产模型免费池（Qwen/GLM 等）", free: "送1400万 tokens", tags: ["LLM","国内"] },
+  { cat: "ai", name: "Groq", url: "https://console.groq.com", desc: "LPU 推理，速度极快", free: "免费额度", tags: ["LLM","极速"] },
+  { cat: "ai", name: "OpenRouter", url: "https://openrouter.ai", desc: "一个 key 调所有主流模型，含免费模型", free: "免费模型池", tags: ["LLM","聚合"] },
+  { cat: "ai", name: "Ollama", url: "https://ollama.com", desc: "本地跑开源模型，离线免费", free: "完全免费", tags: ["本地","离线"] },
+
+  { cat: "monitor", name: "UptimeRobot", url: "https://uptimerobot.com", desc: "网站挂了发邮件提醒", free: "50个监控免费", tags: ["监控"] },
+  { cat: "monitor", name: "Google Analytics", url: "https://analytics.google.com", desc: "网站流量统计", free: "免费", tags: ["流量"] },
+  { cat: "monitor", name: "Vercel Analytics", url: "https://vercel.com/analytics", desc: "Vercel 内置轻量分析", free: "免费", tags: ["流量"] },
+
+  { cat: "vscode", name: "Prettier", url: "https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode", desc: "保存自动格式化代码", free: "免费", tags: ["格式化"] },
+  { cat: "vscode", name: "ES7+ React Snippets", url: "https://marketplace.visualstudio.com/items?itemName=dsznajder.es7-react-js-snippets", desc: "React 代码片段快捷键", free: "免费", tags: ["React"] },
+  { cat: "vscode", name: "Error Lens", url: "https://marketplace.visualstudio.com/items?itemName=usernamehw.errorlens", desc: "错误直接显示在代码行尾", free: "免费", tags: ["调试"] },
+  { cat: "vscode", name: "GitLens", url: "https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens", desc: "每行代码谁写的、什么时候提交", free: "免费", tags: ["Git"] },
+  { cat: "vscode", name: "Tailwind CSS IntelliSense", url: "https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss", desc: "Tailwind 类名自动补全", free: "免费", tags: ["Tailwind"] },
+  { cat: "vscode", name: "Thunder Client", url: "https://www.thunderclient.com", desc: "VS Code 内 API 测试（见 API 工具分类）", free: "免费", tags: ["API"] },
+
+  { cat: "github", name: "shadcn-ui/ui", url: "https://github.com/shadcn-ui/ui", desc: "现代组件库源码，复制即用", free: "开源 MIT", tags: ["前端"] },
+  { cat: "github", name: "doocs/advanced-java", url: "https://github.com/doocs/advanced-java", desc: "Java 后端面试与实战知识库", free: "开源", tags: ["Java","学习"] },
+  { cat: "github", name: "30-seconds-of-code", url: "https://github.com/30-seconds/30-seconds-of-code", desc: "常用 JS 代码片段集", free: "开源", tags: ["JS"] },
+  { cat: "github", name: "public-apis", url: "https://github.com/public-apis/public-apis", desc: "免费公开 API 大全（含天气/股票/电影）", free: "开源", tags: ["API"] },
+  { cat: "github", name: "Awesome", url: "https://github.com/sindresorhus/awesome", desc: "各领域资源精选列表总目录", free: "开源", tags: ["资源"] },
+  { cat: "github", name: "formkit/auto-animate", url: "https://github.com/formkit/auto-animate", desc: "一行代码给列表加动画", free: "开源", tags: ["动画"] },
+
+  { cat: "design", name: "Dribbble", url: "https://dribbble.com", desc: "全球 UI/UX 设计灵感", free: "免费浏览", tags: ["灵感"] },
+  { cat: "design", name: "Mobbin", url: "https://mobbin.com", desc: "真实 App 界面截图库", free: "免费额度", tags: ["App UI"] },
+  { cat: "design", name: "Coolors", url: "https://coolors.co", desc: "配色方案生成器", free: "免费", tags: ["配色"] },
+  { cat: "design", name: "Real-Time Colors", url: "https://www.realtimecolors.com", desc: "输入品牌色实时生成配色", free: "免费", tags: ["配色"] },
+  { cat: "design", name: "Google Fonts", url: "https://fonts.google.com", desc: "免费可商用字体", free: "免费", tags: ["字体"] },
+  { cat: "design", name: "Unsplash", url: "https://unsplash.com", desc: "免费高清图片素材", free: "免费", tags: ["图片"] },
+];
+
+const TOOL_CATS = [
+  { id: "all", name: "全部" },
+  { id: "deploy", name: "部署平台" },
+  { id: "db", name: "数据库" },
+  { id: "debug", name: "调试性能" },
+  { id: "api", name: "API 工具" },
+  { id: "frontend", name: "前端设计" },
+  { id: "vscode", name: "VS Code 插件" },
+  { id: "github", name: "开源项目" },
+  { id: "design", name: "设计灵感" },
+  { id: "ai", name: "AI 模型" },
+  { id: "monitor", name: "监控统计" },
+];
+
+/* 模型预设（用户可切换） */
+const MODEL_PRESETS = [
+  { id: "deepseek", name: "DeepSeek V3（国内推荐）", baseURL: "https://api.deepseek.com", model: "deepseek-chat", keyUrl: "platform.deepseek.com", note: "注册送500万 tokens，国内直连，代码能力强" },
+  { id: "siliconflow", name: "硅基流动（免费模型多）", baseURL: "https://api.siliconflow.cn/v1", model: "Qwen/Qwen2.5-72B-Instruct", keyUrl: "siliconflow.cn", note: "送1400万 tokens，国内直连，免费模型池丰富" },
+  { id: "groq", name: "Groq（速度极快）", baseURL: "https://api.groq.com/openai/v1", model: "llama-3.3-70b-versatile", keyUrl: "console.groq.com", note: "LPU 推理秒回，免费额度大，国内可能需代理" },
+  { id: "openrouter", name: "OpenRouter（免费模型池）", baseURL: "https://openrouter.ai/api/v1", model: "meta-llama/llama-3.3-70b-instruct:free", keyUrl: "openrouter.ai", note: "一个 key 调所有模型，含免费模型，国内可能需代理" },
+  { id: "custom", name: "自定义 OpenAI 兼容端点", baseURL: "", model: "", keyUrl: "", note: "任意兼容 OpenAI 协议的 API（如 Together、Moonshot、智谱等）" },
+];
+
+/* ============ 选型器数据（保留原 5 步） ============ */
+const STEPS = [
+  {
+    title: "第 1 步 · 前端开发", desc: "决定界面的技术底座与审美方案",
+    groups: [
+      { label: "UI 框架", multi: false, opts: [
+        { v: "React", d: "生态最大，招聘最多，AI 编程工具支持最好", t: ["最流行","岗位最多"] },
+        { v: "Vue", d: "上手最快，模板直观，国内项目与教学最常见", t: ["新手友好","国内常用"] },
+        { v: "Angular", d: "企业级强约定，TypeScript 原生", t: ["企业级"] },
+        { v: "Svelte", d: "编译型无虚拟 DOM，包体最小", t: ["极简","高性能"] },
+      ]},
+      { label: "元框架 / 渲染模式", multi: false, opts: [
+        { v: "Next.js", d: "React 默认全栈：路由、SSR、Server Actions", t: ["React 默认"] },
+        { v: "Nuxt", d: "Vue 对应全栈元框架，生态成熟", t: ["Vue 默认"] },
+        { v: "Astro", d: "内容站首选：默认零 JS，岛屿架构", t: ["内容站首选"] },
+        { v: "纯 SPA (Vite)", d: "前后端分离纯客户端，最灵活", t: ["最灵活"] },
+      ]},
+      { label: "UI / 审美方案", multi: false, opts: [
+        { v: "Tailwind + Shadcn", d: "现代主流，高度定制、组件精致", t: ["最流行"] },
+        { v: "Ant Design", d: "中后台利器，企业组件齐全", t: ["中后台标配"] },
+        { v: "Element Plus", d: "Vue 生态常用，中文文档友好", t: ["Vue 常用"] },
+        { v: "手写 CSS", d: "完全自定义，学习样式本质", t: ["学习向"] },
+      ]},
+      { label: "视觉风格预设", multi: false, opts: [
+        { v: "极简白底 Linear/Notion 风", d: "大量留白、细边框、低饱和灰，专业感强", t: ["最通用","耐看"] },
+        { v: "玻璃拟态 Glassmorphism", d: "半透明毛玻璃、模糊背景、霓虹描边", t: ["炫酷","现代"] },
+        { v: "新拟态 Neumorphism", d: "柔和同色系凹凸阴影，柔和可爱", t: ["柔和"] },
+        { v: "Brutalism 粗野主义", d: "粗黑边框、高饱和撞色、硬阴影、反常规", t: ["个性","抓眼"] },
+        { v: "Dark + 霓虹赛博", d: "深色底+荧光青/紫，开发者工具感", t: ["极客","深夜"] },
+        { v: "内容站 Typography 风", d: "大字标题、宽行距、极少装饰，像博客/文档", t: ["内容站"] },
+      ]},
+    ]
+  },
+  {
+    title: "第 2 步 · 后端开发", desc: "决定 API 服务的语言与框架",
+    groups: [
+      { label: "主语言", multi: false, opts: [
+        { v: "TypeScript (Node)", d: "前后端同语言，NestJS/Express 生态大", t: ["前后端同语言"] },
+        { v: "Python", d: "AI/数据最强，FastAPI 异步高性能", t: ["AI 首选"] },
+        { v: "Java", d: "企业级稳，Spring Boot 生态最重", t: ["企业级"] },
+        { v: "Go", d: "并发强，单二进制部署，云原生主流", t: ["高性能","云原生"] },
+        { v: "Rust", d: "内存安全极致性能，学习曲线陡", t: ["极致性能"] },
+      ]},
+      { label: "后端框架", multi: false, opts: [
+        { v: "NestJS", d: "企业级 Node 框架，依赖注入、模块化", t: ["TS 企业级"] },
+        { v: "Express", d: "最轻量灵活，Node 老牌", t: ["轻量"] },
+        { v: "FastAPI", d: "Python 异步、自动 OpenAPI 文档", t: ["Python 首选"] },
+        { v: "Spring Boot", d: "Java 全家桶，约定大于配置", t: ["Java 标准"] },
+        { v: "Gin", d: "Go 最快路由框架，极简", t: ["Go 主流"] },
+        { v: "Actix-Web", d: "Rust 高性能 Web 框架", t: ["Rust"] },
+      ]},
+      { label: "API 协议", multi: false, opts: [
+        { v: "REST", d: "最通用，HTTP 语义清晰，资料最多", t: ["通用"] },
+        { v: "GraphQL", d: "客户端按需取数，前端灵活", t: ["灵活","复杂度高"] },
+        { v: "gRPC", d: "内部服务间通信，Protobuf 强类型", t: ["微服务"] },
+      ]},
+    ]
+  },
+  {
+    title: "第 3 步 · 数据库", desc: "数据存哪里、怎么查、怎么连",
+    groups: [
+      { label: "主数据库", multi: false, opts: [
+        { v: "MySQL", d: "最普及，运维资料多，课程教学标配", t: ["关系型","最普及"] },
+        { v: "PostgreSQL", d: "功能最强，JSON/地理/全文都支持", t: ["高级","开源"] },
+        { v: "MongoDB", d: "文档型灵活，前端友好", t: ["NoSQL"] },
+        { v: "SQLite", d: "单文件零配置，小型项目首选", t: ["极简","原型"] },
+      ]},
+      { label: "缓存 / 内存库", multi: false, opts: [
+        { v: "Redis", d: "分布式缓存、会话、限流标配", t: ["缓存标配"] },
+        { v: "内存 (Node)", d: "进程内 Map/对象，重启即失", t: ["极简"] },
+        { v: "暂无", d: "项目小，先不加缓存", t: ["极简"] },
+      ]},
+      { label: "ORM / 查询方式", multi: false, opts: [
+        { v: "Prisma", d: "TypeScript 类型安全，schema 直观", t: ["TS 首选"] },
+        { v: "Drizzle", d: "轻量 SQL 构建器，类型安全", t: ["轻量"] },
+        { v: "SQLAlchemy", d: "Python ORM 老牌，灵活", t: ["Python"] },
+        { v: "MyBatis", d: "Java 半自动化，SQL 可控", t: ["Java"] },
+        { v: "原生 SQL", d: "最透明，学习底层原理", t: ["学习向"] },
+      ]},
+    ]
+  },
+  {
+    title: "第 4 步 · 安全与认证", desc: "用户登录和基础安全防护",
+    groups: [
+      { label: "认证方案", multi: false, opts: [
+        { v: "JWT", d: "无状态 token，前后端分离常用", t: ["前后端分离"] },
+        { v: "Session+Cookie", d: "传统服务端会话，简单稳", t: ["传统","简单"] },
+        { v: "Auth.js (NextAuth)", d: "Next.js 一键接 GitHub/微信登录", t: ["Next.js"] },
+        { v: "第三方登录", d: "GitHub/微信/支付宝 OAuth", t: ["免注册"] },
+      ]},
+      { label: "安全策略（可多选）", multi: true, opts: [
+        { v: "HTTPS", d: "全站加密，平台一般自动给", t: ["必开"] },
+        { v: "XSS 防护", d: "输出转义、CSP 头", t: ["基础"] },
+        { v: "CSRF 防护", d: "SameSite Cookie、Token 校验", t: ["基础"] },
+        { v: "速率限制", d: "防刷接口，限流中间件", t: ["防刷"] },
+        { v: "参数化查询", d: "防 SQL 注入，ORM 自带", t: ["必做"] },
+        { v: "Helmet 安全头", d: "Node 一键设置安全响应头", t: ["Node"] },
+      ]},
+    ]
+  },
+  {
+    title: "第 5 步 · 部署与云服务", desc: "上线到哪里、怎么发布",
+    groups: [
+      { label: "平台", multi: false, opts: [
+        { v: "Vercel", d: "前端/Next.js 一键免费部署", t: ["免费","前端"] },
+        { v: "阿里云", d: "国内 ECS 学生机，最常用", t: ["国内","学生"] },
+        { v: "AWS", d: "全球最全，免费套餐 1 年", t: ["全球"] },
+        { v: "Railway", d: "后端+数据库一体化部署", t: ["后端"] },
+        { v: "自建 VPS", d: "自己买服务器装 Docker", t: ["最自由"] },
+      ]},
+      { label: "容器化", multi: false, opts: [
+        { v: "Docker", d: "打包环境，一次构建到处跑", t: ["主流"] },
+        { v: "K8s", d: "容器编排，大型项目才用", t: ["大规模"] },
+        { v: "暂无", d: "小项目直接 node/python 跑", t: ["极简"] },
+      ]},
+      { label: "CI/CD", multi: false, opts: [
+        { v: "GitHub Actions", d: "git push 自动测试部署", t: ["最流行"] },
+        { v: "GitLab CI", d: "自建仓库自带流水线", t: ["GitLab"] },
+        { v: "手动部署", d: "scp/ftp 上传，小项目够用", t: ["极简"] },
+      ]},
+    ]
+  },
+];
+
+/* 详情库（点 i 弹出） */
+const DETAILS = {
+  "React": { what: "用于构建用户界面的 JS 库，组件化开发，虚拟 DOM。", fit: "适合中大型交互应用、招聘岗位最多。", note: "配合 Next.js 用，别单独用 React 做全栈。", src: "资料库/前端生态补充.md" },
+  "Vue": { what: "渐进式框架，模板语法贴近 HTML，上手快。", fit: "国内项目、教学首选。", note: "配合 Nuxt 做全栈。", src: "资料库/前端生态补充.md" },
+  "Next.js": { what: "React 全栈元框架，文件路由、SSR、API Routes、Server Actions。", fit: "React 项目默认选它。", note: "Vercel 一键部署。", src: "资料库/前端生态补充.md" },
+  "Nuxt": { what: "Vue 全栈元框架，等价于 Next.js。", fit: "Vue 项目默认选它。", src: "资料库/前端生态补充.md" },
+  "Tailwind + Shadcn": { what: "原子化 CSS + 可复制粘贴的精致组件。", fit: "现代审美、想高度自定义。", note: "先学 Tailwind 再装 Shadcn。", src: "资料库/前端生态补充.md" },
+  "Ant Design": { what: "企业级中后台组件库，默认皮肤成熟。", fit: "管理后台、内部系统。", src: "资料库/前端生态补充.md" },
+
+  "TypeScript (Node)": { what: "用 JS 语法写后端，前后端同语言。", fit: "想全栈用一门语言搞定。", note: "用 NestJS 而不是 Express 起步。", src: "资料库/后端框架补充.md" },
+  "Python": { what: "语法最简洁，AI/数据生态最强。", fit: "做 AI 相关、脚本、API。", note: "Web 用 FastAPI 而不是 Flask。", src: "资料库/后端框架补充.md" },
+  "Java": { what: "强类型、企业级稳、生态重。", fit: "进大厂、大型系统。", note: "学习曲线陡。", src: "资料库/后端框架补充.md" },
+  "Go": { what: "并发原生、编译单二进制、云原生主流。", fit: "高并发后端、微服务。", src: "资料库/后端框架补充.md" },
+  "FastAPI": { what: "Python 异步框架，自动生成 OpenAPI 文档，类型提示。", fit: "Python API 首选。", note: "uvicorn 启动。", src: "资料库/后端框架补充.md" },
+  "Spring Boot": { what: "Java 全家桶，约定大于配置。", fit: "企业 Java 标准。", src: "资料库/后端框架补充.md" },
+  "NestJS": { what: "Node 企业级框架，依赖注入、模块化，结构像 Spring。", fit: "大型 Node 项目。", src: "资料库/后端框架补充.md" },
+
+  "MySQL": { what: "最普及的关系型数据库。", fit: "课程教学、常规业务。", note: "用连接池，别裸连。", src: "资料库/数据库与ORM.md" },
+  "PostgreSQL": { what: "功能最强开源关系库，JSON/地理/全文检索。", fit: "复杂查询、高级需求。", src: "资料库/数据库与ORM.md" },
+  "MongoDB": { what: "文档型 NoSQL，schema 灵活。", fit: "数据结构多变、前端友好。", src: "资料库/数据库与ORM.md" },
+  "Redis": { what: "内存键值库，缓存/会话/限流。", fit: "高性能缓存标配。", src: "资料库/数据库与ORM.md" },
+  "Prisma": { what: "TS ORM，schema 文件定义表，自动生成类型。", fit: "TS 项目首选。", src: "资料库/数据库与ORM.md" },
+
+  "JWT": { what: "无状态 token，存前端，每次请求带。", fit: "前后端分离、移动端。", note: "过期时间别太长，注意存 httpOnly cookie。", src: "资料库/Web安全清单.md" },
+  "Auth.js (NextAuth)": { what: "Next.js 官方认证库，一键接 OAuth。", fit: "Next.js 项目。", src: "资料库/Web安全清单.md" },
+
+  "Vercel": { what: "前端/Next.js 一键部署平台，git push 自动上线。", fit: "前端项目、Serverless API。", note: "免费额度够用，国内访问偶尔慢。", src: "资料库/云部署与IP配置.md" },
+  "阿里云": { what: "国内最大云，学生机便宜。", fit: "国内项目、要备案。", note: "域名+ICP备案+安全组配置。", src: "资料库/云部署与IP配置.md" },
+  "Docker": { what: "把环境打包成镜像，一次构建到处跑。", fit: "任何后端项目。", src: "资料库/云部署与IP配置.md" },
+  "GitHub Actions": { what: "git push 自动跑测试、部署。", fit: "所有开源项目。", src: "资料库/云部署与IP配置.md" },
+};
+
+/* 新手推荐 */
+const RECOMMEND = {
+  0: { 0: "React", 1: "Next.js", 2: "Tailwind + Shadcn", 3: "极简白底 Linear/Notion 风" },
+  1: { 0: "TypeScript (Node)", 1: "NestJS", 2: "REST" },
+  2: { 0: "MySQL", 1: "Redis", 2: "Prisma" },
+  3: { 0: "JWT", 1: ["HTTPS","XSS 防护","CSRF 防护","速率限制","参数化查询","Helmet 安全头"] },
+  4: { 0: "Vercel", 1: "Docker", 2: "GitHub Actions" },
+};
+
+/* ============ 状态 ============ */
+let currentStep = 0;
+let selections = {};   // key: stepIdx-groupIdx -> value (string | array)
+let chatHistory = [];
+let toolFilter = "all";
+
+/* ============ 工具函数 ============ */
+function el(tag, cls, html) {
+  const e = document.createElement(tag || "div");
+  if (cls) e.className = cls;
+  if (html !== undefined) e.innerHTML = html;
+  return e;
+}
+function openModal(html) {
+  document.getElementById("modalBox").innerHTML = '<button class="modal-close" onclick="closeModal()">×</button>' + html;
+  document.getElementById("modalMask").classList.add("show");
+}
+function closeModal() { document.getElementById("modalMask").classList.remove("show"); }
+document.getElementById("modalMask").addEventListener("click", e => { if (e.target.id === "modalMask") closeModal(); });
+
+/* ============ Tab 切换 ============ */
+document.querySelectorAll(".tab").forEach(t => {
+  t.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+    document.querySelectorAll(".view").forEach(x => x.classList.remove("active"));
+    t.classList.add("active");
+    document.getElementById("view-" + t.dataset.view).classList.add("active");
+  });
+});
+
+/* ============ 选型器渲染 ============ */
+function renderStep() {
+  const card = document.getElementById("selectorCard");
+  card.innerHTML = "";
+  const step = STEPS[currentStep];
+
+  const head = el("div", "");
+  head.style.display = "flex"; head.style.justifyContent = "space-between"; head.style.alignItems = "flex-start"; head.style.marginBottom = "8px";
+  head.appendChild(el("h2", "step-title", step.title));
+  const recBtn = el("button", "recommend-btn", "新手推荐一键填充");
+  recBtn.onclick = () => applyRecommend();
+  head.appendChild(recBtn);
+  card.appendChild(head);
+  card.appendChild(el("p", "step-desc", step.desc));
+
+  step.groups.forEach((g, gi) => {
+    card.appendChild(el("div", "group-label", g.label));
+    const grid = el("div", "opt-grid " + (g.opts.length >= 4 ? "four" : ""));
+    g.opts.forEach(op => {
+      const key = currentStep + "-" + gi;
+      const sel = selections[key];
+      const isSel = g.multi ? (Array.isArray(sel) && sel.includes(op.v)) : sel === op.v;
+      const o = el("div", "opt" + (isSel ? " selected" : ""));
+      o.onclick = () => toggleOpt(key, op.v, g.multi);
+
+      const hasDetail = DETAILS[op.v] ? true : false;
+      let inner = '<div class="opt-head"><span class="opt-name">' + op.v + "</span>" +
+        '<div class="opt-actions">' +
+        (hasDetail ? '<button class="info-btn" title="查看详细知识" onclick="event.stopPropagation();openDetail(\'' + op.v.replace(/'/g, "\\'") + '\')">i</button>' : "") +
+        '<span class="check">✓</span>' +
+        "</div></div>" +
+        '<span class="opt-desc">' + op.d + "</span>";
+      if (op.t && op.t.length) {
+        inner += '<div class="opt-tags">' + op.t.map(x => '<span class="opt-tag">' + x + "</span>").join("") + "</div>";
+      }
+      o.innerHTML = inner;
+      grid.appendChild(o);
+    });
+    card.appendChild(grid);
+  });
+
+  // 底部导航
+  const nav = el("div", "step-nav");
+  const prev = el("button", "btn-ghost", "← 上一步");
+  prev.disabled = currentStep === 0;
+  prev.onclick = () => { if (currentStep > 0) { currentStep--; renderStep(); } };
+  const next = el("button", "btn-next", currentStep === STEPS.length - 1 ? "查看汇总 →" : "下一步 →");
+  next.onclick = () => {
+    if (currentStep < STEPS.length - 1) { currentStep++; renderStep(); }
+    else renderSummary();
+  };
+  nav.appendChild(prev);
+  nav.appendChild(el("span", "progress", "第 " + (currentStep + 1) + " / " + STEPS.length + " 步"));
+  nav.appendChild(next);
+  card.appendChild(nav);
+}
+
+function toggleOpt(key, value, multi) {
+  if (multi) {
+    if (!selections[key]) selections[key] = [];
+    const arr = selections[key];
+    const i = arr.indexOf(value);
+    if (i >= 0) arr.splice(i, 1); else arr.push(value);
+  } else {
+    selections[key] = selections[key] === value ? null : value;
+  }
+  renderStep();
+}
+
+function applyRecommend() {
+  const rec = RECOMMEND[currentStep];
+  if (!rec) return;
+  for (const gi in rec) {
+    selections[currentStep + "-" + gi] = rec[gi];
+  }
+  renderStep();
+}
+
+function openDetail(name) {
+  const d = DETAILS[name];
+  if (!d) return;
+  openModal(
+    "<h3>" + name + "</h3>" +
+    '<div class="detail-body">' +
+    "<h4>是什么</h4><p>" + d.what + "</p>" +
+    (d.fit ? "<h4>适合场景</h4><p>" + d.fit + "</p>" : "") +
+    (d.note ? "<h4>注意</h4><p>" + d.note + "</p>" : "") +
+    '<div class="src-hint">更多细节见本地资料库：' + d.src + "</div>" +
+    "</div>"
+  );
+}
+
+function renderSummary() {
+  const card = document.getElementById("selectorCard");
+  card.innerHTML = "";
+  card.appendChild(el("h2", "step-title", "你的全栈技术路线"));
+  card.appendChild(el("p", "step-desc", "按下面这张图搭，每一层选了什么一目了然。"));
+
+  const flow = el("div", "summary-flow");
+  const flowNodes = ["前端", "后端", "数据库", "认证", "部署"];
+  flowNodes.forEach((n, i) => {
+    flow.appendChild(el("span", "flow-node", n));
+    if (i < flowNodes.length - 1) flow.appendChild(el("span", "flow-arrow", "→"));
+  });
+  card.appendChild(flow);
+
+  STEPS.forEach((step, si) => {
+    step.groups.forEach((g, gi) => {
+      const sel = selections[si + "-" + gi];
+      if (!sel || (Array.isArray(sel) && sel.length === 0)) return;
+      const row = el("div", "sum-row");
+      row.appendChild(el("div", "sum-label", g.label));
+      const v = el("div", "sum-value");
+      const arr = Array.isArray(sel) ? sel : [sel];
+      v.innerHTML = arr.map(x => '<span class="chip">' + x + "</span>").join("");
+      row.appendChild(v);
+      card.appendChild(row);
+    });
+  });
+
+  // 行动清单
+  const actions = [];
+  STEPS.forEach((step, si) => {
+    step.groups.forEach((g, gi) => {
+      const sel = selections[si + "-" + gi];
+      if (!sel) return;
+      const arr = Array.isArray(sel) ? sel : [sel];
+      arr.forEach(v => { if (ACTION_MAP[v]) actions.push(v + " → " + ACTION_MAP[v]); });
+    });
+  });
+  if (actions.length) {
+    card.appendChild(el("div", "group-label", "行动清单（照着敲就能跑起来）"));
+    const actBox = el("div", "");
+    actBox.style.background = "var(--bg)"; actBox.style.padding = "12px 14px"; actBox.style.borderRadius = "10px";
+    actBox.innerHTML = actions.map((a, i) =>
+      '<div style="padding:6px 0;border-bottom:1px dashed #e4e4e7;font-size:13px">' +
+      '<span style="display:inline-block;width:24px;color:#2563eb;font-weight:700;">' + (i + 1) + '.</span>' +
+      a.replace(/→/g, '<span style="color:#71717a;">→</span>') +
+      "</div>"
+    ).join("");
+    card.appendChild(actBox);
+  }
+
+  const nav = el("div", "step-nav");
+  const back = el("button", "btn-ghost", "← 返回修改");
+  back.onclick = () => { currentStep = 0; renderStep(); };
+  const copy = el("button", "btn-ghost", "复制技术栈");
+  copy.onclick = copyStack;
+  nav.appendChild(back);
+  nav.appendChild(copy);
+  nav.appendChild(el("span", "progress", ""));
+  card.appendChild(nav);
+}
+
+function copyStack() {
+  let txt = "我的全栈技术栈：\n";
+  STEPS.forEach((step, si) => {
+    txt += "\n" + step.title + ":\n";
+    step.groups.forEach((g, gi) => {
+      const sel = selections[si + "-" + gi];
+      if (!sel) return;
+      txt += "  - " + g.label + ": " + (Array.isArray(sel) ? sel.join(", ") : sel) + "\n";
+    });
+  });
+  navigator.clipboard.writeText(txt).then(() => alert("已复制到剪贴板"));
+}
+
+/* ============ AI 助手 ============ */
+function getConfig() {
+  try { return JSON.parse(localStorage.getItem("fs_cfg") || "{}"); }
+  catch (e) { return {}; }
+}
+function saveConfig(cfg) { localStorage.setItem("fs_cfg", JSON.stringify(cfg)); updateModelPill(); }
+
+function updateModelPill() {
+  const cfg = getConfig();
+  const pill = document.getElementById("modelPill");
+  if (cfg.apiKey && cfg.model) {
+    pill.classList.add("connected");
+    document.getElementById("modelPillText").textContent = cfg.modelName || cfg.model;
+  } else {
+    pill.classList.remove("connected");
+    document.getElementById("modelPillText").textContent = "未设置模型";
+  }
+}
+
+function openSettings() {
+  const cfg = getConfig();
+  const presetOpts = MODEL_PRESETS.map(p =>
+    '<option value="' + p.id + '" ' + (cfg.presetId === p.id ? "selected" : "") + ">" + p.name + "</option>"
+  ).join("");
+  openModal(
+    "<h3>AI 模型设置</h3>" +
+    '<div class="form-row"><label>选择预设模型</label><select id="cfgPreset" onchange="fillPreset()">' + presetOpts + "</select></div>" +
+    '<div class="form-row"><label>Base URL（不含 /chat/completions）</label><input id="cfgBase" value="' + (cfg.baseURL || "") + '" placeholder="https://api.deepseek.com"></div>' +
+    '<div class="form-row"><label>模型名</label><input id="cfgModel" value="' + (cfg.model || "") + '" placeholder="deepseek-chat"></div>' +
+    '<div class="form-row"><label>API Key</label><input id="cfgKey" type="password" value="' + (cfg.apiKey || "") + '" placeholder="sk-..."></div>' +
+    '<div class="free-models" style="background:#f4f4f5;border-radius:8px;padding:12px;font-size:12px;line-height:1.7">' +
+    "<b>免费模型推荐：</b><br>" +
+    "• <b>DeepSeek</b>：platform.deepseek.com，送500万 tokens，国内直连<br>" +
+    "• <b>硅基流动</b>：siliconflow.cn，送1400万 tokens，免费模型多<br>" +
+    "• <b>Groq</b>：console.groq.com，速度极快（国内可能需代理）<br>" +
+    "• <b>OpenRouter</b>：openrouter.ai，含免费模型（国内可能需代理）" +
+    "</div>" +
+    '<div style="display:flex;gap:8px;margin-top:10px">' +
+    '<button class="btn primary" style="flex:1" onclick="saveSettings()">保存</button>' +
+    '<button class="btn" onclick="testConnection()">测试连接</button>' +
+    "</div>"
+  );
+}
+
+function fillPreset() {
+  const id = document.getElementById("cfgPreset").value;
+  const p = MODEL_PRESETS.find(x => x.id === id);
+  if (!p) return;
+  if (p.baseURL) document.getElementById("cfgBase").value = p.baseURL;
+  if (p.model) document.getElementById("cfgModel").value = p.model;
+}
+
+function saveSettings() {
+  const presetId = document.getElementById("cfgPreset").value;
+  const preset = MODEL_PRESETS.find(x => x.id === presetId);
+  saveConfig({
+    presetId: presetId,
+    baseURL: document.getElementById("cfgBase").value.trim().replace(/\/$/, ""),
+    model: document.getElementById("cfgModel").value.trim(),
+    apiKey: document.getElementById("cfgKey").value.trim(),
+    modelName: preset ? preset.name : "自定义",
+  });
+  closeModal();
+}
+
+async function testConnection() {
+  const base = document.getElementById("cfgBase").value.trim().replace(/\/$/, "");
+  const model = document.getElementById("cfgModel").value.trim();
+  const key = document.getElementById("cfgKey").value.trim();
+  if (!base || !model || !key) { alert("请先填完整"); return; }
+  try {
+    const res = await fetch(base + "/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
+      body: JSON.stringify({ model: model, messages: [{ role: "user", content: "hi" }], max_tokens: 10 })
+    });
+    if (res.ok) alert("✅ 连接成功！");
+    else alert("❌ HTTP " + res.status + "，检查 Key / Base URL / 模型名");
+  } catch (e) {
+    alert("❌ 请求失败：" + e.message + "\n\n常见原因：CORS 被拦、网络不通（国内需代理访问海外 API）");
+  }
+}
+
+function renderMarkdown(md) {
+  let h = md
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  h = h.replace(/```(\w*)\n([\s\S]*?)```/g, (m, lang, code) => "<pre><code>" + code.trim() + "</code></pre>");
+  h = h.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+  h = h.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  h = h.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  h = h.replace(/^### (.*)$/gm, "<h4>$1</h4>");
+  h = h.replace(/^- (.*)$/gm, "<li>$1</li>");
+  h = h.replace(/(<li>.*<\/li>\n?)+/g, m => "<ul>" + m + "</ul>");
+  h = h.split(/\n{2,}/).map(p => p.startsWith("<") ? p : "<p>" + p.replace(/\n/g, "<br>") + "</p>").join("");
+  return h;
+}
+
+function addMessage(role, text) {
+  const box = document.getElementById("chatMessages");
+  const m = el("div", "msg " + role);
+  const bubble = el("div", "msg-bubble", role === "ai" ? renderMarkdown(text) : text);
+  m.appendChild(bubble);
+  box.appendChild(m);
+  box.scrollTop = box.scrollHeight;
+  return bubble;
+}
+
+async function sendMessage() {
+  const input = document.getElementById("chatInput");
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = "";
+  addMessage("user", text);
+
+  const cfg = getConfig();
+  if (!cfg.apiKey || !cfg.baseURL || !cfg.model) {
+    addMessage("ai", "还没设置模型。点右上角「设置」填 API Key，推荐 **DeepSeek** 或 **硅基流动**（国内直连、免费额度够学生用）。");
+    return;
+  }
+
+  const box = document.getElementById("chatMessages");
+  const bubble = addMessage("ai", "思考中…");
+  try {
+    const controller = new AbortController();
+    const res = await fetch(cfg.baseURL + "/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + cfg.apiKey },
+      body: JSON.stringify({
+        model: cfg.model,
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          ...chatHistory,
+          { role: "user", content: text }
+        ],
+        temperature: 0.7,
+        stream: true
+      }),
+      signal: controller.signal
+    });
+    if (!res.ok) {
+      const errText = await res.text();
+      bubble.innerHTML = renderMarkdown("HTTP " + res.status + " 错误：\n```\n" + errText.slice(0, 500) + "\n```\n\n检查：Key 是否有效、Base URL 是否带 /v1（看模型预设）、模型名拼写。");
+      return;
+    }
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let full = "";
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value, { stream: true });
+      const lines = chunk.split("\n");
+      for (const line of lines) {
+        const t = line.trim();
+        if (!t.startsWith("data:")) continue;
+        const payload = t.slice(5).trim();
+        if (payload === "[DONE]") continue;
+        try {
+          const json = JSON.parse(payload);
+          const delta = json.choices && json.choices[0] && json.choices[0].delta ? (json.choices[0].delta.content || "") : "";
+          if (delta) {
+            full += delta;
+            bubble.innerHTML = renderMarkdown(full);
+            box.scrollTop = box.scrollHeight;
+          }
+        } catch (e) {}
+      }
+    }
+    if (!full) bubble.innerHTML = "（模型返回为空）";
+    chatHistory.push({ role: "user", content: text }, { role: "assistant", content: full });
+  } catch (e) {
+    bubble.innerHTML = renderMarkdown("请求失败：" + e.message + "\n\n常见原因：\n- 海外 API（Groq/OpenRouter）国内直连不通，需要代理\n- Base URL 写错（不要带 /chat/completions）\n- 浏览器跨域被拦");
+  }
+  box.scrollTop = box.scrollHeight;
+}
+
+document.getElementById("chatInput").addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+/* 渲染快捷问题 */
+const side = document.getElementById("chatSide");
+QUICK_PROMPTS.forEach(p => {
+  const card = el("div", "prompt-card");
+  card.innerHTML = '<div class="pc-title">' + p.title + '</div><div class="pc-desc">' + p.desc + "</div>";
+  card.onclick = () => {
+    document.getElementById("chatInput").value = p.q;
+    sendMessage();
+  };
+  side.appendChild(card);
+});
+
+/* ============ 工具箱 ============ */
+function renderToolCats() {
+  const bar = document.getElementById("toolCatBar");
+  bar.innerHTML = "";
+  TOOL_CATS.forEach(c => {
+    const pill = el("button", "cat-pill" + (toolFilter === c.id ? " active" : ""), c.name);
+    pill.onclick = () => { toolFilter = c.id; renderToolCats(); renderTools(); };
+    bar.appendChild(pill);
+  });
+}
+function renderTools() {
+  const grid = document.getElementById("toolGrid");
+  grid.innerHTML = "";
+  const list = toolFilter === "all" ? TOOLS : TOOLS.filter(t => t.cat === toolFilter);
+  list.forEach(t => {
+    const card = el("div", "tool-card");
+    card.innerHTML =
+      '<div class="tool-name">' + t.name + '</div>' +
+      '<a class="tool-url" href="' + t.url + '" target="_blank" rel="noopener">' + t.url.replace(/^https?:\/\//, "") + "</a>" +
+      '<div class="tool-desc">' + t.desc + "</div>" +
+      '<div class="tool-free">免费：' + t.free + "</div>" +
+      '<div class="tool-tags">' + t.tags.map(x => '<span class="tool-tag">' + x + "</span>").join("") + "</div>";
+    grid.appendChild(card);
+  });
+}
+
+/* ============ 全局搜索 ============ */
+document.getElementById("globalSearch").addEventListener("input", e => {
+  const q = e.target.value.trim().toLowerCase();
+  if (!q) return;
+  // 优先在 DETAILS 里找
+  const hit = Object.keys(DETAILS).find(k => k.toLowerCase().includes(q));
+  if (hit) {
+    openDetail(hit);
+    e.target.value = "";
+    return;
+  }
+  // 其次在工具箱里找
+  const toolHit = TOOLS.find(t => t.name.toLowerCase().includes(q) || t.desc.toLowerCase().includes(q));
+  if (toolHit) {
+    openModal(
+      "<h3>" + toolHit.name + "</h3>" +
+      '<div class="detail-body">' +
+      '<p><b>官网：</b><a href="' + toolHit.url + '" target="_blank">' + toolHit.url + "</a></p>" +
+      "<p>" + toolHit.desc + "</p>" +
+      "<p><b>免费额度：</b>" + toolHit.free + "</p>" +
+      "</div>"
+    );
+    e.target.value = "";
+    return;
+  }
+  // 最后跳到 AI 助手让大模型答
+  openModal("<h3>没在本地资料库找到「" + q + "」</h3><p>可以切到「AI 助手」标签，让大模型帮你分析。</p>");
+});
+
+/* ============ AI 自动填选型 ============ */
+async function aiFillStack() {
+  const desc = document.getElementById("aiFillInput").value.trim();
+  if (!desc) { alert("先描述一下你的项目"); return; }
+  const cfg = getConfig();
+  if (!cfg.apiKey || !cfg.baseURL || !cfg.model) {
+    alert("请先在右上角「设置」填好 API Key 再用 AI 帮你选。");
+    return;
+  }
+  const sys = `你是全栈技术选型器。根据用户项目描述，从下面固定枚举里选最合适的一项，返回严格 JSON，不要解释、不要 markdown：
+{
+  "framework": "React" | "Vue" | "Angular" | "Svelte",
+  "meta": "Next.js" | "Nuxt" | "Astro" | "纯 SPA (Vite)",
+  "ui": "Tailwind + Shadcn" | "Ant Design" | "Element Plus" | "手写 CSS",
+  "style": "极简白底 Linear/Notion 风" | "玻璃拟态 Glassmorphism" | "新拟态 Neumorphism" | "Brutalism 粗野主义" | "Dark + 霓虹赛博" | "内容站 Typography 风",
+  "lang": "TypeScript (Node)" | "Python" | "Java" | "Go" | "Rust",
+  "backend": "NestJS" | "Express" | "FastAPI" | "Spring Boot" | "Gin" | "Actix-Web",
+  "api": "REST" | "GraphQL" | "gRPC",
+  "db": "MySQL" | "PostgreSQL" | "MongoDB" | "SQLite",
+  "cache": "Redis" | "内存 (Node)" | "暂无",
+  "orm": "Prisma" | "Drizzle" | "SQLAlchemy" | "MyBatis" | "原生 SQL",
+  "auth": "JWT" | "Session+Cookie" | "Auth.js (NextAuth)" | "第三方登录",
+  "security": ["HTTPS","XSS 防护","CSRF 防护","速率限制","参数化查询","Helmet 安全头"],
+  "platform": "Vercel" | "阿里云" | "AWS" | "Railway" | "自建 VPS",
+  "container": "Docker" | "K8s" | "暂无",
+  "ci": "GitHub Actions" | "GitLab CI" | "手动部署"
+}
+只输出 JSON。`;
+  try {
+    const res = await fetch(cfg.baseURL + "/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + cfg.apiKey },
+      body: JSON.stringify({
+        model: cfg.model,
+        messages: [{ role: "system", content: sys }, { role: "user", content: desc }],
+        temperature: 0.2
+      })
+    });
+    const data = await res.json();
+    const txt = data.choices[0].message.content.trim();
+    const jsonStr = txt.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "");
+    const rec = JSON.parse(jsonStr);
+    selections = {
+      "0-0": rec.framework, "0-1": rec.meta, "0-2": rec.ui, "0-3": rec.style,
+      "1-0": rec.lang, "1-1": rec.backend, "1-2": rec.api,
+      "2-0": rec.db, "2-1": rec.cache, "2-2": rec.orm,
+      "3-0": rec.auth, "3-1": rec.security,
+      "4-0": rec.platform, "4-1": rec.container, "4-2": rec.ci,
+    };
+    currentStep = 0;
+    renderStep();
+    alert("AI 已根据项目描述自动勾选，从第 1 步开始查看，不满意可手动改。");
+  } catch (e) {
+    alert("AI 返回解析失败：" + e.message);
+  }
+}
+
+/* ============ 行动清单映射 ============ */
+const ACTION_MAP = {
+  "Next.js": "npx create-next-app@latest my-app",
+  "Nuxt": "npx nuxi@latest init my-app",
+  "Astro": "npm create astro@latest",
+  "纯 SPA (Vite)": "npm create vite@latest my-app -- --template react-ts",
+  "NestJS": "npm i -g @nestjs/cli && nest new my-api",
+  "Express": "npm init -y && npm i express",
+  "FastAPI": "pip install fastapi uvicorn",
+  "Spring Boot": "去 start.spring.io 生成项目骨架",
+  "Gin": "go mod init my-api && go get github.com/gin-gonic/gin",
+  "MySQL": "本地装 MySQL，或用 Supabase/Neon 云库",
+  "PostgreSQL": "注册 Supabase 或 Neon，直接拿连接串",
+  "MongoDB": "注册 MongoDB Atlas 免费层",
+  "Redis": "本地装 Redis，或用 Upstash 免费云 Redis",
+  "Prisma": "npm i prisma -D && npx prisma init",
+  "Drizzle": "npm i drizzle-orm && npm i -D drizzle-kit",
+  "SQLAlchemy": "pip install sqlalchemy",
+  "JWT": "npm i jsonwebtoken，token 存 httpOnly cookie",
+  "Session+Cookie": "express-session + connect-redis",
+  "Auth.js (NextAuth)": "npm i next-auth，按文档配 OAuth Provider",
+  "第三方登录": "在 Auth.js 或 Casdoor 里配 GitHub/微信 OAuth App",
+  "Vercel": "注册 vercel.com，连 GitHub 仓库一键部署",
+  "阿里云": "买 ECS → 配安全组 → 装 Node/Docker → Nginx 反代",
+  "Railway": "railway.app 连 GitHub 仓库，自动识别 Dockerfile",
+  "自建 VPS": "买服务器 → 装 Docker → docker compose 启动",
+  "Docker": "装 Docker Desktop，写 Dockerfile 和 docker-compose.yml",
+  "GitHub Actions": "仓库建 .github/workflows/deploy.yml",
+  "Tailwind + Shadcn": "npx shadcn@latest init",
+  "Ant Design": "npm i antd",
+  "Element Plus": "npm i element-plus",
+};
+
+/* ============ 项目生成：融合提示词 ============ */
+function buildPrompt() {
+  const idea = document.getElementById("projIdea").value.trim() || "（用户项目想法）";
+  const name = document.getElementById("projName").value.trim() || "my-project";
+  const sel = selections;
+
+  function pick(step, gi) {
+    const v = sel[step + "-" + gi];
+    if (!v) return "";
+    return Array.isArray(v) ? v.join("、") : v;
+  }
+
+  const sec = (t, body) => "### " + t + "\n" + (body || "（未选择）") + "\n\n";
+
+  let prompt = "请帮我完整开发一个全栈项目。请严格按下面的技术栈、功能与审美要求生成可直接运行的项目代码。\n\n";
+  prompt += "## 项目目标\n" + idea + "\n\n";
+  prompt += "## 项目名\n" + name + "\n\n";
+  prompt += sec("前端", "框架：" + pick(0,0) + "；元框架：" + pick(0,1) + "；UI方案：" + pick(0,2) + "；视觉风格：" + pick(0,3));
+  prompt += sec("后端", "语言：" + pick(1,0) + "；框架：" + pick(1,1) + "；API协议：" + pick(1,2));
+  prompt += sec("数据库", "主库：" + pick(2,0) + "；缓存：" + pick(2,1) + "；ORM：" + pick(2,2));
+  prompt += sec("认证与安全", "认证方案：" + pick(3,0) + "；安全策略：" + pick(3,1));
+  prompt += sec("部署", "平台：" + pick(4,0) + "；容器化：" + pick(4,1) + "；CI/CD：" + pick(4,2));
+  prompt += "## 功能要求\n1. 完整可运行，包含必要的启动脚本和说明 README。\n2. 前后端数据流通（API 联调）必须真实可用，不能是假数据写死。\n3. 数据库结构要合理，包含建表/迁移文件。\n4. 代码结构清晰：分目录组织，命名规范，关键处加中文注释。\n5. 错误处理：API 返回统一格式，前端有错误提示。\n6. 安全：按上面选择的安全策略实现（如参数化查询、JWT 校验、CSRF 防护）。\n\n";
+  prompt += "## 审美要求\n严格按所选视觉风格实现（配色、圆角、间距、字体、明暗模式），页面要美观、现代、有设计感，避免默认模板感。\n\n";
+  prompt += "## 输出要求\n直接输出完整文件结构树 + 每个文件的完整代码，文件路径写清楚，方便我逐个保存。";
+
+  document.getElementById("promptOutput").value = prompt;
+  document.getElementById("promptOutput").scrollTop = 0;
+  alert("提示词已生成，复制后发给 Cursor / Claude Code / v0 即可。");
+}
+
+function copyPrompt() {
+  const t = document.getElementById("promptOutput").value;
+  if (!t) { alert("先点「生成完整提示词」"); return; }
+  navigator.clipboard.writeText(t).then(() => alert("提示词已复制到剪贴板"));
+}
+
+function sendPromptToAI() {
+  const t = document.getElementById("promptOutput").value;
+  if (!t) { alert("先点「生成完整提示词」"); return; }
+  // 切到 AI 助手 Tab
+  document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+  document.querySelectorAll(".view").forEach(x => x.classList.remove("active"));
+  document.querySelector('.tab[data-view="chat"]').classList.add("active");
+  document.getElementById("view-chat").classList.add("active");
+  const input = document.getElementById("chatInput");
+  input.value = "请以这份提示词为基准，直接开始生成项目代码（如果太长，先给文件结构和关键文件）：\n\n" + t.slice(0, 3000);
+  input.focus();
+}
+
+/* ============ 本地建项目文件夹（File System Access API） ============ */
+async function createLocalProject() {
+  const name = (document.getElementById("projName").value.trim() || "my-project").replace(/[^a-zA-Z0-9-_]/g, "-");
+  const idea = document.getElementById("projIdea").value.trim();
+  const prompt = document.getElementById("promptOutput").value;
+
+  if (!window.showDirectoryPicker) {
+    alert("当前浏览器不支持「File System Access API」（需 Chrome / Edge 87+ 且用 http 或本地打开）。\n\n替代方案：手动建一个文件夹，命名 " + name + "，把上面的提示词保存为 prompt.txt 放进去。");
+    return;
+  }
+  try {
+    const dir = await window.showDirectoryPicker({ mode: "readwrite" });
+    const proj = await dir.getDirectoryHandle(name, { create: true });
+
+    // README.md
+    const readme = await proj.getFileHandle("README.md", { create: true });
+    const w1 = await readme.createWritable();
+    await w1.write("# " + name + "\n\n" + (idea || "（项目描述待补充）") + "\n\n## 技术栈\n" + stackSummary() + "\n");
+    await w1.close();
+
+    // prompt.txt
+    if (prompt) {
+      const pf = await proj.getFileHandle("prompt.txt", { create: true });
+      const w2 = await pf.createWritable();
+      await w2.write(prompt);
+      await w2.close();
+    }
+
+    alert("已创建项目文件夹：/" + name + "/\n里面已自动放入：README.md" + (prompt ? "、prompt.txt（完整提示词）" : "") + "\n\n接下来：把提示词发给 Cursor/Claude Code，让它生成的代码文件放进这个文件夹即可。");
+  } catch (e) {
+    if (e.name === "AbortError") return; // 用户取消
+    alert("创建失败：" + e.message);
+  }
+}
+
+function stackSummary() {
+  const sel = selections;
+  const pick = (s, g) => { const v = sel[s + "-" + g]; return v ? (Array.isArray(v) ? v.join("、") : v) : "未选"; };
+  return "- 前端：" + pick(0,0) + " / " + pick(0,1) + " / " + pick(0,2) + "\n- 后端：" + pick(1,0) + " / " + pick(1,1) + "\n- 数据库：" + pick(2,0) + " / " + pick(2,1) + "\n- 认证：" + pick(3,0) + "\n- 部署：" + pick(4,0);
+}
+
+/* ============ 检查代码（防跑偏审查） ============ */
+function openCheckCode() {
+  const cfg = getConfig();
+  openModal(
+    "<h3>代码体检</h3>" +
+    '<div class="detail-body" style="margin-bottom:10px">' +
+    "把 AI 生成的代码贴进来（或贴关键文件：package.json + 一个页面 + 后端入口 + 数据库 schema），点击「开始检查」。" +
+    "它会审查：技术栈是否跑偏、全栈链路是否缺东西（API 通不通/数据库连不连/认证有没有）、代码严谨性（错误处理/注入/硬编码）。" +
+    "</div>" +
+    '<div class="form-row"><textarea id="codeCheckInput" rows="10" style="font-family:ui-monospace,Menlo,monospace;font-size:12px;" placeholder="粘贴代码..."></textarea></div>' +
+    '<div style="display:flex;gap:8px;align-items:center">' +
+    '<button class="btn primary" onclick="runCodeCheck()">开始检查</button>' +
+    '<span style="font-size:12px;color:#71717a" id="codeCheckStatus">需先配置模型（右上角设置）</span>' +
+    "</div>" +
+    '<div id="codeCheckResult" style="margin-top:12px;font-size:13px;line-height:1.7;"></div>'
+  );
+}
+
+async function runCodeCheck() {
+  const code = document.getElementById("codeCheckInput").value.trim();
+  if (!code) { alert("请先粘贴代码"); return; }
+  const cfg = getConfig();
+  if (!cfg.apiKey || !cfg.baseURL || !cfg.model) { alert("请先在右上角「设置」填好 API Key"); return; }
+  const status = document.getElementById("codeCheckStatus");
+  const out = document.getElementById("codeCheckResult");
+  status.textContent = "检查中，请稍候…";
+  out.innerHTML = "";
+
+  const sys = `你是一名严苛的全栈代码审查员。用户正在按一份技术选型做全栈项目。请审查贴入的代码，输出：
+1. 技术栈是否跑偏（用了与选型不符的框架/库）
+2. 全栈链路完整性（列出缺失项：前端调用后端？后端连数据库？认证实现？环境变量？启动脚本？）
+3. 代码严谨性（错误处理、SQL 注入/XSS、硬编码密钥、明显 bug）
+4. 结论与修复建议（按严重程度排序）
+用中文，简洁分条，用 Markdown。`;
+
+  const sel = selections;
+  const pick = (s, g) => { const v = sel[s + "-" + g]; return v ? (Array.isArray(v) ? v.join("、") : v) : "未选"; };
+  const stackDesc = "前端:" + pick(0,0) + "/" + pick(0,1) + "，后端:" + pick(1,0) + "/" + pick(1,1) + "，数据库:" + pick(2,0) + "/" + pick(2,1) + "，认证:" + pick(3,0) + "，部署:" + pick(4,0);
+
+  try {
+    const res = await fetch(cfg.baseURL + "/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + cfg.apiKey },
+      body: JSON.stringify({
+        model: cfg.model,
+        messages: [
+          { role: "system", content: sys },
+          { role: "user", content: "我的选型：\n" + stackDesc + "\n\n待审查代码：\n```\n" + code.slice(0, 12000) + "\n```" }
+        ],
+        temperature: 0.3
+      })
+    });
+    if (!res.ok) { status.textContent = "请求失败 HTTP " + res.status; return; }
+    const data = await res.json();
+    const reply = data.choices[0].message.content;
+    out.innerHTML = renderMarkdown(reply);
+    status.textContent = "检查完成";
+  } catch (e) {
+    status.textContent = "请求失败：" + e.message;
+  }
+}
+
+/* ============ GitHub 开源项目搜索 ============ */
+async function searchGitHub() {
+  const q = document.getElementById("ghSearch").value.trim();
+  if (!q) { alert("输入关键词"); return; }
+  const box = document.getElementById("ghResult");
+  box.innerHTML = '<span style="color:#71717a;font-size:13px">搜索中…</span>';
+  try {
+    const res = await fetch("https://api.github.com/search/repositories?q=" + encodeURIComponent(q) + "&sort=stars&per_page=12", { headers: { "Accept": "application/vnd.github+json" } });
+    if (!res.ok) { box.innerHTML = '<span style="color:#a14e50">搜索失败（HTTP ' + res.status + '，GitHub API 未认证限流，稍后再试）</span>'; return; }
+    const data = await res.json();
+    if (!data.items || !data.items.length) { box.innerHTML = '<span style="color:#71717a">没有找到相关仓库</span>'; return; }
+    box.innerHTML = data.items.map(r =>
+      '<div style="border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:#fff">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">' +
+      '<a href="' + r.html_url + '" target="_blank" rel="noopener" style="font-weight:600;font-size:14px;color:var(--primary);text-decoration:none">' + r.full_name + "</a>" +
+      '<span style="font-size:12px;color:var(--muted)">★ ' + (r.stargazers_count || 0).toLocaleString() + " · " + (r.language || "多语言") + "</span>" +
+      "</div>" +
+      '<div style="font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.5">' + (r.description || "（无描述）") + "</div>" +
+      '<div style="font-size:11.5px;color:#9a6a2f;margin-top:4px">' + (r.license ? "协议：" + r.license.spdx_id + " · " : "") + "更新：" + (r.pushed_at || "").slice(0, 10) + "</div>" +
+      "</div>"
+    ).join("");
+  } catch (e) {
+    box.innerHTML = '<span style="color:#a14e50">请求失败：' + e.message + "</span>";
+  }
+}
+
+async function searchGitHubUser() {
+  const u = document.getElementById("ghUser").value.trim().replace(/^@/, "");
+  if (!u) { alert("输入 GitHub 用户名"); return; }
+  const box = document.getElementById("ghResult");
+  box.innerHTML = '<span style="color:#71717a;font-size:13px">搜索中…</span>';
+  try {
+    const res = await fetch("https://api.github.com/users/" + encodeURIComponent(u) + "/repos?sort=stars&per_page=12", { headers: { "Accept": "application/vnd.github+json" } });
+    if (!res.ok) { box.innerHTML = '<span style="color:#a14e50">查询失败（HTTP ' + res.status + '，用户不存在或限流）</span>'; return; }
+    const data = await res.json();
+    if (!data.length) { box.innerHTML = '<span style="color:#71717a">该用户没有公开仓库</span>'; return; }
+    box.innerHTML = data.map(r =>
+      '<div style="border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:#fff">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">' +
+      '<a href="' + r.html_url + '" target="_blank" rel="noopener" style="font-weight:600;font-size:14px;color:var(--primary);text-decoration:none">' + r.full_name + "</a>" +
+      '<span style="font-size:12px;color:var(--muted)">★ ' + (r.stargazers_count || 0).toLocaleString() + " · " + (r.language || "多语言") + "</span>" +
+      "</div>" +
+      '<div style="font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.5">' + (r.description || "（无描述）") + "</div>" +
+      "</div>"
+    ).join("");
+  } catch (e) {
+    box.innerHTML = '<span style="color:#a14e50">请求失败：' + e.message + "</span>";
+  }
+}
+
+/* 启动 */
+updateModelPill();
+renderStep();
+renderToolCats();
+renderTools();
+</script>
+</body>
+</html>

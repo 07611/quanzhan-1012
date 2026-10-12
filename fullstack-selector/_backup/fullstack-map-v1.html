@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全栈技术选型器 · Fullstack Map</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%232563eb'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle' fill='white' font-family='sans-serif'%3EF%3C/text%3E%3C/svg%3E">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  button { font-family: inherit; font-size: inherit; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: #f5f5f4; color: #18181b; line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .app { max-width: 960px; margin: 0 auto; padding: 32px 20px 80px; }
+
+  /* ===== 头部 ===== */
+  header { margin-bottom: 28px; }
+  header h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+  header p { color: #71717a; font-size: 14px; margin-top: 6px; }
+
+  /* 进度条 */
+  .steps-bar { display: flex; gap: 6px; margin-top: 20px; flex-wrap: wrap; }
+  .step-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 999px; font-size: 13px;
+    border: 1px solid #e4e4e7; background: #fff; color: #71717a; cursor: pointer;
+    transition: all .15s;
+  }
+  .step-pill.active { border-color: #2563eb; color: #2563eb; font-weight: 600; background: #eff6ff; }
+  .step-pill.done { border-color: #d4d4d8; color: #52525b; }
+  .step-pill.done::before { content: "✓"; color: #16a34a; font-weight: 700; }
+
+  /* ===== 主区 ===== */
+  .card-wrap {
+    background: #fff; border: 1px solid #e4e4e7; border-radius: 12px;
+    padding: 28px 26px; margin-bottom: 20px;
+  }
+  .step-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .step-sub { font-size: 13px; color: #71717a; margin-bottom: 22px; }
+
+  .group { margin-bottom: 26px; }
+  .group:last-child { margin-bottom: 4px; }
+  .group-label {
+    font-size: 13px; font-weight: 600; color: #52525b;
+    margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+  }
+  .group-label .must { color: #dc2626; font-weight: 700; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)); gap: 10px; }
+  @media (min-width: 720px) {
+    .grid:has(> :nth-child(4):last-child) { grid-template-columns: repeat(4, 1fr); }
+    .grid:has(> :nth-child(5):last-child) { grid-template-columns: repeat(3, 1fr); }
+  }
+  .opt {
+    position: relative; border: 1.5px solid #e4e4e7; border-radius: 10px;
+    padding: 12px 14px 12px 14px; cursor: pointer; background: #fff;
+    transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: #a1a1aa; }
+  .opt.selected { border-color: #2563eb; background: #eff6ff; }
+  .opt.selected .opt-name { color: #1d4ed8; font-weight: 700; }
+  .opt-name { font-size: 15px; font-weight: 600; display: block; margin-bottom: 3px; }
+  .opt-desc { font-size: 12px; color: #71717a; line-height: 1.5; }
+  .opt .check {
+    position: absolute; top: 10px; right: 10px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #2563eb; color: #fff; font-size: 12px; font-weight: 700;
+    display: none; align-items: center; justify-content: center;
+  }
+  .opt.selected .check { display: flex; }
+
+  /* ===== 底部导航 ===== */
+  .nav { display: flex; justify-content: space-between; gap: 10px; }
+  .btn {
+    padding: 11px 24px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    border: 1px solid #e4e4e7; background: #fff; color: #3f3f46; cursor: pointer;
+    transition: all .12s;
+  }
+  .btn:hover { border-color: #a1a1aa; }
+  .btn.primary { background: #2563eb; border-color: #2563eb; color: #fff; }
+  .btn.primary:hover { background: #1d4ed8; }
+  .btn.primary:disabled { background: #bfdbfe; border-color: #bfdbfe; cursor: not-allowed; }
+
+  /* ===== 汇总页 ===== */
+  .flow {
+    display: flex; align-items: stretch; gap: 0; margin: 18px 0 26px;
+    overflow-x: auto; padding-bottom: 6px;
+  }
+  .flow-node {
+    flex: 1; min-width: 130px; background: #f8fafc; border: 1.5px solid #bfdbfe;
+    border-radius: 10px; padding: 12px 10px; text-align: center;
+  }
+  .flow-node .fn-label { font-size: 11px; color: #2563eb; font-weight: 700; letter-spacing: .05em; }
+  .flow-node .fn-value { font-size: 14px; font-weight: 700; margin-top: 4px; }
+  .flow-node .fn-sub { font-size: 11px; color: #71717a; margin-top: 2px; }
+  .flow-arrow { align-self: center; padding: 0 6px; color: #a1a1aa; font-size: 18px; flex: 0 0 auto; }
+
+  .sum-section { border-top: 1px solid #e4e4e7; padding: 14px 0; }
+  .sum-section:first-of-type { border-top: none; padding-top: 4px; }
+  .sum-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .sum-head h4 { font-size: 15px; font-weight: 700; }
+  .sum-edit { font-size: 12px; color: #2563eb; cursor: pointer; background: none; border: none; padding: 4px 8px; }
+  .sum-edit:hover { text-decoration: underline; }
+  .sum-row { display: flex; gap: 10px; font-size: 13px; padding: 3px 0; }
+  .sum-key { min-width: 110px; color: #71717a; font-weight: 500; }
+  .sum-val { color: #18181b; font-weight: 600; }
+
+  .toolbox { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
+  .toolbox .btn { flex: 1; min-width: 140px; }
+
+  .empty-note { color: #a1a1aa; font-size: 13px; }
+
+  @media (max-width: 600px) {
+    .card-wrap { padding: 20px 16px; }
+    header h1 { font-size: 22px; }
+    .grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>全栈技术选型器</h1>
+    <p>5 步理清你的全栈技术链：前端 → 后端 → 数据库 → 安全 → 部署。点选卡片即可，最后自动生成你的技术栈。</p>
+    <div class="steps-bar" id="stepsBar"></div>
+  </header>
+
+  <main id="main"></main>
+
+  <div class="nav" id="nav"></div>
+</div>
+
+<script>
+/* ================= 数据：5 步选型 ================= */
+var FW_BY_LANG = {
+  "TypeScript": [
+    { v: "Express", d: "最简最通用，Node 生态事实标准" },
+    { v: "NestJS", d: "企业级模块化，依赖注入与微服务" },
+    { v: "Fastify", d: "高性能 + Schema 校验，API 首选" }
+  ],
+  "Python": [
+    { v: "FastAPI", d: "异步 + 类型 + 自动文档，AI 接口首选" },
+    { v: "Django", d: "全栈自带 Admin，业务快速落地" },
+    { v: "Flask", d: "极简微框架，灵活自由" }
+  ],
+  "Java": [
+    { v: "Spring Boot", d: "企业级全家桶，微服务生态最成熟" },
+    { v: "Quarkus", d: "云原生 GraalVM，启动快内存省" }
+  ],
+  "Go": [
+    { v: "Gin", d: "高并发 REST 事实标准" },
+    { v: "Fiber", d: "fasthttp 极速，类 Express 风格" },
+    { v: "Echo", d: "高性能，中间件生态好" }
+  ],
+  "Rust": [
+    { v: "Actix Web", d: "吞吐性能顶尖" },
+    { v: "Axum", d: "Tokio 官方生态，类型安全，新项目主流" }
+  ]
+};
+
+var STEPS = [
+  {
+    id: "fe", title: "第 1 步 · 前端开发",
+    sub: "决定界面的技术底座与审美方案",
+    groups: [
+      { key: "framework", label: "UI 框架", options: [
+        { v: "React", d: "生态最大、招聘最多，AI 编程工具支持最好" },
+        { v: "Vue", d: "上手最快、模板直观，国内项目与教学最常见" },
+        { v: "Angular", d: "企业级强约定，TypeScript 原生，大型团队" },
+        { v: "Svelte", d: "编译型无虚拟 DOM，包体最小、语法简洁" }
+      ]},
+      { key: "meta", label: "元框架 / 渲染模式", options: [
+        { v: "Next.js", d: "React 默认全栈方案：路由、SSR、Server Actions" },
+        { v: "Nuxt", d: "Vue 对应全栈元框架，生态成熟" },
+        { v: "Astro", d: "内容站首选：默认零 JS，岛屿架构性能极佳" },
+        { v: "纯 SPA (Vite)", d: "前后端分离纯客户端，最灵活" }
+      ]},
+      { key: "ui", label: "UI / 审美方案", options: [
+        { v: "Tailwind + Shadcn", d: "现代主流，高度定制、组件精致，最流行审美" },
+        { v: "Ant Design", d: "中后台利器，企业组件齐全，国内后台标配" },
+        { v: "Element Plus", d: "Vue 生态常用，中文文档友好" },
+        { v: "手写 CSS", d: "完全自定义，学习样式本质，小项目可用" }
+      ]}
+    ]
+  },
+  {
+    id: "be", title: "第 2 步 · 后端开发",
+    sub: "先选语言，框架会跟着语言联动",
+    groups: [
+      { key: "lang", label: "后端语言", options: [
+        { v: "TypeScript", d: "前后端同语言，类型统一" },
+        { v: "Python", d: "AI 生态最好，开发效率高" },
+        { v: "Java", d: "企业级标准，岗位最多" },
+        { v: "Go", d: "高并发微服务之王，部署简单" },
+        { v: "Rust", d: "极致性能与内存安全，新兴" }
+      ]},
+      { key: "fw", label: "后端框架", dependsOn: "lang", options: [] },
+      { key: "api", label: "API 协议", options: [
+        { v: "REST", d: "最通用、调试简单，90% 项目首选" },
+        { v: "GraphQL", d: "按需取数，前端灵活，复杂数据场景" },
+        { v: "gRPC", d: "高性能二进制协议，微服务内部通信" }
+      ]}
+    ]
+  },
+  {
+    id: "db", title: "第 3 步 · 数据库",
+    sub: "数据存哪里、怎么读",
+    groups: [
+      { key: "main", label: "主数据库", options: [
+        { v: "MySQL", d: "最常用，教学与企业标配，资料多" },
+        { v: "PostgreSQL", d: "功能最强，JSON/扩展丰富，复杂查询" },
+        { v: "MongoDB", d: "文档型，Schema 灵活，快速迭代" },
+        { v: "SQLite", d: "单文件本地库，原型与小项目零成本" }
+      ]},
+      { key: "cache", label: "缓存", options: [
+        { v: "Redis", d: "高速内存库：会话、限流、排行榜常用" },
+        { v: "进程内缓存", d: "内存变量级，单机小项目够用" },
+        { v: "暂无", d: "初期不需要，后续再加" }
+      ]},
+      { key: "orm", label: "数据访问层", options: [
+        { v: "Prisma", d: "TS 生态最流行，类型安全、迁移直观" },
+        { v: "Drizzle", d: "轻量 SQL 构建器，贴近 SQL 本身" },
+        { v: "SQLAlchemy", d: "Python ORM 标准，灵活强大" },
+        { v: "MyBatis", d: "Java 生态常用，SQL 可控性强" },
+        { v: "原生 SQL", d: "最直接，学习与简单项目" }
+      ]}
+    ]
+  },
+  {
+    id: "sec", title: "第 4 步 · 安全与认证",
+    sub: "用户怎么登录、接口怎么防攻击",
+    groups: [
+      { key: "auth", label: "认证方案", options: [
+        { v: "JWT", d: "无状态令牌，前后端分离/跨域常用" },
+        { v: "Session+Cookie", d: "传统服务端会话，简单易懂" },
+        { v: "Auth.js (NextAuth)", d: "开箱即用，支持多种登录方式" },
+        { v: "第三方 OAuth", d: "微信/GitHub/Google 登录，免自建密码" }
+      ]},
+      { key: "policies", label: "安全策略（可多选）", multi: true, options: [
+        { v: "HTTPS", d: "全站加密，部署平台通常自动配置证书" },
+        { v: "XSS 防护", d: "输入转义 / CSP，防注入脚本" },
+        { v: "CSRF 防护", d: "双重提交令牌，防跨站伪造请求" },
+        { v: "速率限制", d: "防刷接口与暴力破解" },
+        { v: "参数化查询", d: "防 SQL 注入，用 ORM 默认满足" },
+        { v: "安全响应头", d: "HSTS/CSP 等，缩小攻击面" }
+      ]}
+    ]
+  },
+  {
+    id: "ops", title: "第 5 步 · 部署与云服务",
+    sub: "代码怎么上线、域名与 HTTPS 怎么配",
+    groups: [
+      { key: "platform", label: "部署平台", options: [
+        { v: "Vercel", d: "Next.js/前端首选，免费额度大，自动 HTTPS 域名" },
+        { v: "阿里云", d: "国内合规、访问快，学生/企业常用" },
+        { v: "AWS", d: "国际大厂生态最全，学云原生" },
+        { v: "Railway/Render", d: "前后端 + 数据库一键托管，个人项目友好" },
+        { v: "自建服务器", d: "VPS 最自由，需自配域名/IP/安全组" }
+      ]},
+      { key: "container", label: "容器化", options: [
+        { v: "Docker", d: "一次构建到处运行，团队项目标配" },
+        { v: "Kubernetes", d: "大规模集群编排，复杂微服务才需要" },
+        { v: "暂不需要", d: "小项目直接平台部署即可" }
+      ]},
+      { key: "cicd", label: "CI/CD", options: [
+        { v: "GitHub Actions", d: "推代码自动测试构建部署，最流行" },
+        { v: "GitLab CI", d: "自托管仓库配套，企业内网常用" },
+        { v: "手动部署", d: "服务器手动上传，小项目最省事" }
+      ]}
+    ]
+  }
+];
+
+/* ================= 状态 ================= */
+var state = { step: 0, picks: [] };
+for (var i = 0; i < STEPS.length; i++) {
+  var g = {};
+  STEPS[i].groups.forEach(function (gr) { g[gr.key] = gr.multi ? [] : null; });
+  state.picks.push(g);
+}
+
+/* 持久化 */
+try {
+  var saved = localStorage.getItem("fullstack-map");
+  if (saved) { var p = JSON.parse(saved); if (p && p.picks) state.picks = p.picks; }
+} catch (e) {}
+function save() {
+  try { localStorage.setItem("fullstack-map", JSON.stringify({ picks: state.picks })); } catch (e) {}
+}
+
+/* ================= 渲染 ================= */
+function el(tag, cls, html) {
+  var d = document.createElement(tag || "div");
+  if (cls) d.className = cls;
+  if (html !== undefined) d.innerHTML = html;
+  return d;
+}
+
+function renderBar() {
+  var bar = document.getElementById("stepsBar");
+  bar.innerHTML = "";
+  STEPS.forEach(function (s, i) {
+    var pill = el("span", "step-pill" + (i === state.step ? " active" : (i < state.step ? " done" : "")));
+    pill.textContent = (i + 1) + " " + s.title.split("·")[1].trim();
+    pill.onclick = function () { state.step = i; render(); };
+    bar.appendChild(pill);
+  });
+}
+
+function currentStepComplete(i) {
+  var s = STEPS[i];
+  for (var j = 0; j < s.groups.length; j++) {
+    var g = s.groups[j];
+    var v = state.picks[i][g.key];
+    if (g.multi) { if (!v || v.length === 0) return false; }
+    else if (!v) return false;
+  }
+  return true;
+}
+
+function renderStep() {
+  var i = state.step;
+  var s = STEPS[i];
+  var main = document.getElementById("main");
+  main.innerHTML = "";
+
+  var wrap = el("div", "card-wrap");
+  wrap.appendChild(el("div", "step-title", s.title));
+  wrap.appendChild(el("div", "step-sub", s.sub));
+
+  s.groups.forEach(function (g) {
+    // 语言联动：框架选项依赖所选语言
+    var options = g.options;
+    if (g.dependsOn === "lang") {
+      var lang = state.picks[i].lang;
+      options = lang && FW_BY_LANG[lang] ? FW_BY_LANG[lang] :
+        [{ v: "（请先选择后端语言）", d: "选完语言后这里会显示对应框架", disabled: 1 }];
+    }
+
+    var groupEl = el("div", "group");
+    var gl = el("div", "group-label", "<span>" + g.label + "</span>" + (g.multi ? "" : '<span class="must">*</span>'));
+    groupEl.appendChild(gl);
+
+    var grid = el("div", "grid");
+    options.forEach(function (op) {
+      var picked = g.multi ?
+        (state.picks[i][g.key].indexOf(op.v) >= 0) :
+        (state.picks[i][g.key] === op.v);
+      var o = el("div", "opt" + (picked ? " selected" : "") + (op.disabled ? " disabled" : ""));
+      o.innerHTML = '<span class="check">✓</span><span class="opt-name">' + op.v + '</span><span class="opt-desc">' + op.d + '</span>';
+      o.onclick = function () {
+        if (op.disabled) return;
+        if (g.multi) {
+          var arr = state.picks[i][g.key];
+          var idx = arr.indexOf(op.v);
+          if (idx >= 0) arr.splice(idx, 1); else arr.push(op.v);
+        } else {
+          state.picks[i][g.key] = op.v;
+          // 语言变了就清空框架联动值
+          if (g.key === "lang" && state.picks[i].fw) state.picks[i].fw = null;
+        }
+        save(); render();
+      };
+      grid.appendChild(o);
+    });
+    groupEl.appendChild(grid);
+    wrap.appendChild(groupEl);
+  });
+
+  main.appendChild(wrap);
+}
+
+function renderSummary() {
+  var main = document.getElementById("main");
+  main.innerHTML = "";
+  var wrap = el("div", "card-wrap");
+  wrap.appendChild(el("div", "step-title", "你的全栈技术栈"));
+  wrap.appendChild(el("div", "step-sub", "流程图与明细如下，可随时返回修改。"));
+
+  // 流程图
+  var flow = el("div", "flow");
+  var flowLabels = ["前端", "后端", "数据库", "安全", "部署"];
+  var mainKey = [["framework"], ["lang", "fw"], ["main", "cache"], ["auth"], ["platform"]];
+  for (var i = 0; i < 5; i++) {
+    var node = el("div", "flow-node");
+    var v1 = state.picks[i][mainKey[i][0]] || "—";
+    var v2 = mainKey[i][1] ? (state.picks[i][mainKey[i][1]] || "") : "";
+    node.innerHTML = '<div class="fn-label">' + flowLabels[i] + '</div>' +
+      '<div class="fn-value">' + v1 + '</div>' +
+      (v2 ? '<div class="fn-sub">' + v2 + '</div>' : '');
+    flow.appendChild(node);
+    if (i < 4) flow.appendChild(el("div", "flow-arrow", "→"));
+  }
+  wrap.appendChild(flow);
+
+  // 明细
+  var groupNames = {
+    framework: "UI 框架", meta: "元框架", ui: "UI 方案",
+    lang: "语言", fw: "框架", api: "API 协议",
+    main: "主库", cache: "缓存", orm: "数据层",
+    auth: "认证", policies: "安全策略",
+    platform: "平台", container: "容器化", cicd: "CI/CD"
+  };
+  for (var s = 0; s < STEPS.length; s++) {
+    var sec = el("div", "sum-section");
+    var head = el("div", "sum-head");
+    head.innerHTML = "<h4>" + STEPS[s].title.split("·")[1].trim() + "</h4>";
+    var edit = el("button", "sum-edit", "修改");
+    edit.onclick = (function (idx) { return function () { state.step = idx; render(); }; })(s);
+    head.appendChild(edit);
+    sec.appendChild(head);
+
+    STEPS[s].groups.forEach(function (g) {
+      var val = state.picks[s][g.key];
+      var row = el("div", "sum-row");
+      row.innerHTML = '<span class="sum-key">' + groupNames[g.key] + '</span><span class="sum-val"></span>';
+      row.querySelector(".sum-val").textContent = g.multi ? (val.length ? val.join("、") : "（未选）") : (val || "（未选）");
+      sec.appendChild(row);
+    });
+    wrap.appendChild(sec);
+  }
+
+  // 工具按钮
+  var toolbox = el("div", "toolbox");
+  var copyBtn = el("button", "btn primary", "复制技术栈");
+  copyBtn.onclick = function () {
+    var text = buildStackText();
+    var done = function () { copyBtn.textContent = "已复制 ✓"; setTimeout(function(){ copyBtn.textContent = "复制技术栈"; }, 1500); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(function () { fallbackCopy(text); done(); });
+    } else { fallbackCopy(text); done(); }
+  };
+  function fallbackCopy(t) {
+    var ta = document.createElement("textarea");
+    ta.value = t; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  var resetBtn = el("button", "btn", "重新选择");
+  resetBtn.onclick = function () {
+    if (!confirm("清空所有选择，重新开始？")) return;
+    state.step = 0;
+    for (var i = 0; i < STEPS.length; i++) {
+      STEPS[i].groups.forEach(function (g) { state.picks[i][g.key] = g.multi ? [] : null; });
+    }
+    save(); render();
+  };
+
+  toolbox.appendChild(copyBtn);
+  toolbox.appendChild(resetBtn);
+  wrap.appendChild(toolbox);
+
+  main.appendChild(wrap);
+}
+
+function buildStackText() {
+  var lines = ["我的全栈技术栈", ""];
+  var titles = ["前端开发", "后端开发", "数据库", "安全与认证", "部署与云服务"];
+  var keys = [["framework", "meta", "ui"], ["lang", "fw", "api"], ["main", "cache", "orm"], ["auth", "policies"], ["platform", "container", "cicd"]];
+  for (var i = 0; i < 5; i++) {
+    lines.push("【" + titles[i] + "】");
+    keys[i].forEach(function (k) {
+      var v = state.picks[i][k];
+      lines.push("  - " + (Array.isArray(v) ? (v.join("、") || "（未选）") : (v || "（未选）")));
+    });
+    lines.push("");
+  }
+  return lines.join("\n");
+}
+
+function renderNav() {
+  var nav = document.getElementById("nav");
+  nav.innerHTML = "";
+  if (state.step < STEPS.length) {
+    var prev = el("button", "btn", state.step === 0 ? "从头开始" : "← 上一步");
+    prev.onclick = function () {
+      if (state.step === 0) { state.step = 0; } else { state.step--; }
+      render();
+    };
+    if (state.step === 0) prev.style.visibility = "hidden";
+
+    var next = el("button", "btn primary", "下一步 →");
+    if (!currentStepComplete(state.step)) next.disabled = true;
+    next.onclick = function () {
+      if (!currentStepComplete(state.step)) return;
+      state.step++; save(); render();
+    };
+    nav.appendChild(prev);
+    nav.appendChild(next);
+  } else {
+    var back = el("button", "btn", "← 返回第 1 步");
+    back.onclick = function () { state.step = 0; render(); };
+    nav.appendChild(back);
+  }
+}
+
+function render() {
+  renderBar();
+  if (state.step >= STEPS.length) renderSummary(); else renderStep();
+  renderNav();
+}
+
+render();
+</script>
+</body>
+</html>
