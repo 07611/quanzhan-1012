@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全赞-1012 · 知识库导航</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .wrap { width: 100%; max-width: 720px; }
+  h1 { color: #fff; font-size: 28px; margin-bottom: 8px; }
+  .sub { color: rgba(255,255,255,.8); margin-bottom: 28px; font-size: 15px; }
+  .grid { display: grid; gap: 14px; }
+  a.card {
+    display: block; background: #fff; border-radius: 12px;
+    padding: 20px 22px; text-decoration: none; color: #1a1a2e;
+    box-shadow: 0 4px 16px rgba(0,0,0,.12);
+    transition: transform .15s, box-shadow .15s;
+  }
+  a.card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+  .card .t { font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+  .card .d { font-size: 13px; color: #666; }
+  .card .path { font-size: 12px; color: #999; margin-top: 8px; font-family: ui-monospace, monospace; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>全赞-1012 知识库</h1>
+    <p class="sub">选择要查看的页面：</p>
+    <div class="grid">
+      <a class="card" href="FullStack-Architect.html">
+        <div class="t">FullStack Architect</div>
+        <div class="d">全栈架构主页面</div>
+        <div class="path">/FullStack-Architect.html</div>
+      </a>
+      <a class="card" href="FullStack-Studio-v9.html">
+        <div class="t">FullStack Studio v9</div>
+        <div class="d">全栈工作台</div>
+        <div class="path">/FullStack-Studio-v9.html</div>
+      </a>
+      <a class="card" href="fullstack-selector/fullstack-map.html">
+        <div class="t">FullStack Map</div>
+        <div class="d">技术栈选型地图</div>
+        <div class="path">/fullstack-selector/fullstack-map.html</div>
+      </a>
+    </div>
+  </div>
+</body>
+</html>
