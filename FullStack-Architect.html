@@ -810,11 +810,11 @@ html[data-theme="dark"] .feat-sum .ct b{color:var(--brand-2)}
     </div>
 
     <div class="rail-group" data-page-node-id="3ANCZWiYJBX2BFcmFmhjvU">工作区</div>
-    <button class="rail-item active" data-nav="architect" data-page-node-id="wnYhUsFc911fxXmHjIY3aT">
+    <button class="rail-item" data-nav="architect" data-page-node-id="wnYhUsFc911fxXmHjIY3aT">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="pzWRpGxEVjQzxSw1SV98KN"><path d="M12 3 3 8l9 5 9-5-9-5Z" data-page-node-id="O6DfbKmbDhKo7E6W9YwMmO"/><path d="m3 14 9 5 9-5" data-page-node-id="iZ0mgRbAHFMxcmp9aIbi4M"/></svg>
       <span data-page-node-id="CPYTGVO0x2U4Nsv9jThYHQ">架构工作台</span>
     </button>
-    <button class="rail-item" data-nav="chat" data-page-node-id="pSYEeAKEzh8ZRD77r1SCaw">
+    <button class="rail-item active" data-nav="chat" data-page-node-id="pSYEeAKEzh8ZRD77r1SCaw">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="rSrfJXrTxNSgGhmLs3Cj9Y"><path d="M21 12a8 8 0 0 1-8 8H7l-4 3v-6.5A8 8 0 1 1 21 12Z" data-page-node-id="6ZVkHG1eIwOKbjecsZSVkS"/></svg>
       <span data-page-node-id="zaG9U6X0ICk5sbniInrB9O">AI 架构师</span>
     </button>
@@ -2742,7 +2742,7 @@ function setTheme(t){
   if (lbl) lbl.textContent = t === "dark" ? "切换亮色" : "切换暗色";
 }
 function initTheme(){
-  setTheme(LS.get("fsa_theme", "light"));
+  setTheme(LS.get("fsa_theme", "dark"));
 }
 function toggleTheme(){
   setTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
@@ -5447,6 +5447,7 @@ function init(){
   const restored = restoreDraft();
   if (restored) { buildOutputs(); renderOut(); showDraftNotice(d); }
   pingLocalProxy();
+  go("chat");
 }
 /* 草稿恢复提示：告诉用户「配置找回来了」，并给一个立刻放弃的出口 */
 function showDraftNotice(d){
