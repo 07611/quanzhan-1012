@@ -4787,16 +4787,41 @@ function nowHM(){
 function welcomeChat(){
   const box = $("#msgs");
   box.innerHTML =
-    '<div class="chat-empty">' +
-      '<div class="ce-mark">FS</div>' +
-      "<h4>开始一次架构级对话</h4>" +
-      "<p>我会在回答时结合你在工作台选定的技术栈。未配置模型也能用，会给规则化建议；配置一次 API Key 后可获得真实回答与流式输出。</p>" +
-      '<div class="kb-bar" style="justify-content:center" id="ceQuick"></div>' +
+    '<div class="chat-empty" style="max-width:560px">' +
+      "<h4 style=\"margin-bottom:6px\">选择一个智能体开始对话</h4>" +
+      '<p style="margin-bottom:22px">已为你配置两个可交互智能体，点击卡片开始。</p>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;text-align:left;margin-bottom:20px">' +
+        '<button class="pcard" onclick="selectAgent(\'architect\')" style="padding:18px 16px">' +
+          '<div style="font-size:22px;margin-bottom:8px">🏗️</div>' +
+          '<b style="display:block;margin-bottom:4px">全栈架构师</b>' +
+          '<span style="font-size:12.5px;color:var(--ink-3)">把你的想法变成完整技术方案和提示词</span>' +
+        '</button>' +
+        '<button class="pcard" onclick="selectAgent(\'reviewer\')" style="padding:18px 16px">' +
+          '<div style="font-size:22px;margin-bottom:8px">🔍</div>' +
+          '<b style="display:block;margin-bottom:4px">代码审查官</b>' +
+          '<span style="font-size:12.5px;color:var(--ink-3)">检查代码问题、给优化建议和最佳实践</span>' +
+        '</button>' +
+      '</div>' +
+      '<p style="font-size:12px;color:var(--ink-4)">产业班配置 · 双智能体模式</p>' +
     "</div>";
-  const q = $("#ceQuick");
-  if (q) q.innerHTML = QUICK_PROMPTS.slice(0, 4).map((p, i) =>
-    '<button class="pcard" data-ce="' + i + '" style="flex:1 1 150px;max-width:190px">' +
-    "<b>" + esc(p.title) + "</b><span>" + esc(p.desc) + "</span></button>").join("");
+  requestScroll();
+}
+
+let currentAgent = null;
+function selectAgent(type){
+  currentAgent = type;
+  const name = type === "architect" ? "全栈架构师" : "代码审查官";
+  const icon = type === "architect" ? "🏗️" : "🔍";
+  const desc = type === "architect"
+    ? "我是全栈架构师，会帮你把想法变成完整的技术方案、数据模型和可直接投喂 AI 的提示词。"
+    : "我是代码审查官，会帮你检查代码问题、给出优化建议和最佳实践。";
+  $("#msgs").innerHTML =
+    '<div class="chat-empty" style="max-width:480px">' +
+      '<div class="ce-mark" style="background:linear-gradient(140deg,var(--brand),var(--brand-2))">' + icon + "</div>" +
+      "<h4>你好，我是" + name + "</h4>" +
+      "<p>" + desc + "有什么可以帮你的？</p>" +
+    "</div>";
+  $("#chatState").textContent = "已连接 · " + name;
   requestScroll();
 }
 /* ---------- 流式状态 ---------- */
