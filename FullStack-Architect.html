@@ -792,6 +792,92 @@ html[data-theme="dark"] .feat-sum .ct b{color:var(--brand-2)}
   #topTheme{display:none}
   .out-body{max-height:440px}
 }
+/* ============================================================
+   16 · 开场白（进入工作台的第一屏）
+   —— 只做一件事：把「这是谁的、为谁而做」说清楚，然后放人进去
+   ============================================================ */
+.welcome{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;padding:22px;
+  background:rgba(24,20,10,.38);backdrop-filter:blur(9px) saturate(120%);-webkit-backdrop-filter:blur(9px) saturate(120%)}
+html[data-theme="dark"] .welcome{background:rgba(5,5,9,.6)}
+.welcome.show{display:flex;animation:fadeIn .3s ease both}
+.wel-card{position:relative;width:100%;max-width:468px;padding:34px 32px 24px;text-align:center;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-xl);box-shadow:var(--sh-3);
+  overflow:hidden;animation:pop .42s cubic-bezier(.2,.8,.3,1) both}
+/* 顶部渐变条：整卡唯一的高饱和区，视线第一落点 */
+.wel-card::before{content:"";position:absolute;inset:0 0 auto;height:4px;
+  background:linear-gradient(90deg,var(--brand) 0%,var(--brand-2) 42%,var(--flame) 100%)}
+/* 右上角柔光，避免大面积纯色平面显得平 */
+.wel-card::after{content:"";position:absolute;right:-72px;top:-96px;width:236px;height:236px;border-radius:50%;
+  background:radial-gradient(circle,color-mix(in srgb,var(--brand) 15%,transparent),transparent 70%);pointer-events:none}
+.wel-mark{width:58px;height:58px;margin:8px auto 18px;border-radius:17px;display:grid;place-items:center;
+  font-family:var(--f-display);font-size:21px;font-weight:700;letter-spacing:-.03em;color:#fff;
+  background:linear-gradient(140deg,var(--brand-2),var(--brand-deep));
+  box-shadow:0 10px 26px color-mix(in srgb,var(--brand) 34%,transparent);
+  animation:welUp .5s cubic-bezier(.2,.8,.3,1) both}
+.wel-kicker{font-family:var(--f-mono);font-size:10.5px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:9px;animation:welUp .5s .06s cubic-bezier(.2,.8,.3,1) both}
+.wel-card h2{font-size:25px;line-height:1.38;letter-spacing:-.025em;
+  animation:welUp .5s .12s cubic-bezier(.2,.8,.3,1) both}
+/* 用底色块压住关键词，像用记号笔划了一道 */
+.wel-card h2 .hl{background:linear-gradient(transparent 62%,color-mix(in srgb,var(--flame) 30%,transparent) 62%);
+  padding:0 1px;white-space:nowrap}
+.wel-sub{margin-top:11px;font-size:14.5px;color:var(--ink-2);line-height:1.7;
+  animation:welUp .5s .18s cubic-bezier(.2,.8,.3,1) both}
+.wel-sign{display:flex;align-items:center;justify-content:center;gap:10px;margin:22px 0 22px;
+  font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;color:var(--ink-3);text-transform:uppercase;
+  animation:welUp .5s .24s cubic-bezier(.2,.8,.3,1) both}
+.wel-sign::before,.wel-sign::after{content:"";width:32px;height:1px;background:var(--line-2)}
+.wel-sign b{font-family:var(--f-display);font-size:17px;font-weight:700;letter-spacing:-.01em;
+  text-transform:none;color:var(--flame-deep)}
+html[data-theme="dark"] .wel-sign b{color:var(--flame)}
+.wel-go{width:100%;min-height:46px;font-size:15px;
+  animation:welUp .5s .3s cubic-bezier(.2,.8,.3,1) both}
+.wel-never{margin-top:6px;min-height:44px;padding:0 10px;border:0;background:none;
+  font-size:12.5px;color:var(--ink-3);text-decoration:underline;text-underline-offset:3px;
+  animation:welUp .5s .36s cubic-bezier(.2,.8,.3,1) both}
+.wel-never:hover{color:var(--ink-2)}
+.wel-hint{margin-top:8px;font-size:11.5px;color:var(--ink-3);letter-spacing:.01em;
+  animation:welUp .5s .33s cubic-bezier(.2,.8,.3,1) both}
+@keyframes welUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media(max-width:520px){
+  .wel-card{padding:28px 20px 18px;border-radius:var(--r-lg)}
+  .wel-card h2{font-size:21px}
+  .wel-sub{font-size:13.5px}
+  .wel-sign{margin:18px 0}
+}
+/* ============================================================
+   17 · 上手引导（聚光灯 + 分步讲解）
+   —— 用「挖一个洞」的方式指路：洞里是真的界面，洞外压暗，不遮住要看的东西
+   ============================================================ */
+.tour{position:fixed;inset:0;z-index:320;display:none}
+.tour.on{display:block;animation:fadeIn .22s ease both}
+.tour.center{background:rgba(20,17,10,.66);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+html[data-theme="dark"] .tour.center{background:rgba(4,4,8,.74)}
+/* 洞本身透明，靠超大 spread 的阴影把四周压暗；同时描一圈火焰色让视线锁定 */
+.tour-hole{position:absolute;display:none;border-radius:14px;pointer-events:none;
+  box-shadow:0 0 0 9999px rgba(20,17,10,.66),
+             0 0 0 2px color-mix(in srgb,var(--flame) 78%,transparent),
+             0 0 26px 5px color-mix(in srgb,var(--flame) 22%,transparent);
+  transition:left .3s cubic-bezier(.2,.8,.3,1),top .3s cubic-bezier(.2,.8,.3,1),
+             width .3s cubic-bezier(.2,.8,.3,1),height .3s cubic-bezier(.2,.8,.3,1)}
+html[data-theme="dark"] .tour-hole{box-shadow:0 0 0 9999px rgba(4,4,8,.74),
+  0 0 0 2px color-mix(in srgb,var(--flame) 82%,transparent),
+  0 0 26px 5px color-mix(in srgb,var(--flame) 26%,transparent)}
+.tour-tip{position:absolute;width:344px;max-width:calc(100vw - 24px);padding:17px 18px 15px;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-3);
+  animation:pop .26s cubic-bezier(.2,.8,.3,1) both}
+.tour-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}
+.tour-step{font-family:var(--f-mono);font-size:10.5px;font-weight:600;letter-spacing:.14em;color:var(--flame-deep)}
+html[data-theme="dark"] .tour-step{color:var(--flame)}
+.tour-skip{border:0;background:none;color:var(--ink-3);font-size:12px;padding:0 2px;min-height:30px;
+  text-decoration:underline;text-underline-offset:3px}
+.tour-skip:hover{color:var(--ink-2)}
+.tour-tip h3{font-size:16.5px;margin-bottom:6px;letter-spacing:-.02em}
+.tour-tip p{font-size:13.5px;color:var(--ink-2);line-height:1.68}
+.tour-foot{display:flex;gap:8px;margin-top:14px}
+.tour-foot .btn{flex:1}
+.tour-foot .btn[hidden]{display:none!important}
+@media(max-width:520px){.tour-tip{padding:15px 16px 13px}.tour-tip p{font-size:13px}}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;
     transition-duration:.001ms!important;scroll-behavior:auto!important}
@@ -838,6 +924,10 @@ html[data-theme="dark"] .feat-sum .ct b{color:var(--brand-2)}
     </button>
 
     <div class="rail-foot" data-page-node-id="Y2RCpMhfl2C0Z1sKEOaf5i">
+      <button class="rail-item" id="railTour" title="30 秒上手讲解" data-page-node-id="rlTour0001">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="rlTour0002"><circle cx="12" cy="12" r="9" data-page-node-id="rlTour0003"/><path d="M10 8.5v7l5.5-3.5-5.5-3.5Z" data-page-node-id="rlTour0004"/></svg>
+        <span data-page-node-id="rlTour0005">使用讲解</span>
+      </button>
       <button class="rail-item" id="railGen" data-page-node-id="CP60bMaP524vf4ldr8SWsf">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="67ttOe0Qi7A1C8eHTBsCDQ"><circle cx="12" cy="12" r="3" data-page-node-id="qB7ga6anqgSOZFdoEOVeoY"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 3 15H3a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.6 7a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 9 3V3a2 2 0 1 1 4 0v.1A1.6 1.6 0 0 0 15 4.6a1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.6 1.6 0 0 0 21 9h0a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 2Z" data-page-node-id="5kWSRPNqUnnSxagFPUepmP"/></svg>
         <span data-page-node-id="H0KGAzGh8wNmJRVjnAdaFA">模型 / 生成设置</span>
@@ -1145,6 +1235,37 @@ html[data-theme="dark"] .feat-sum .ct b{color:var(--brand-2)}
 <!-- 弹窗 & 面板 & Toast -->
 <div class="mask" id="mask" data-page-node-id="py669DqJcqlDUsf2KvYTnv"><div class="modal scroll" id="modalBox" data-page-node-id="XzAxnb3rKjhYW8WQs0TQHE"></div></div>
 <div class="mask" id="sheetMask" style="align-items:flex-end" data-page-node-id="tcchIjDcRfVlQydBrMnyTT"><div class="modal" id="sheetBox" style="max-width:560px" data-page-node-id="ll4OJ2ghpuNJvVueOQ2m4V"></div></div>
+<!-- ============ 上手引导（聚光灯分步讲解） ============ -->
+<div class="tour" id="tour" role="dialog" aria-modal="true" aria-labelledby="tourTitle" aria-describedby="tourBody">
+  <div class="tour-hole" id="tourHole" aria-hidden="true"></div>
+  <div class="tour-tip" id="tourTip" role="document">
+    <div class="tour-top">
+      <span class="tour-step" id="tourStep">1 / 6</span>
+      <button class="tour-skip" id="tourSkip" type="button">跳过讲解</button>
+    </div>
+    <h3 id="tourTitle"></h3>
+    <p id="tourBody"></p>
+    <div class="tour-foot">
+      <button class="btn btn-sm btn-soft" id="tourPrev" type="button">上一步</button>
+      <button class="btn btn-sm btn-brand" id="tourNext" type="button">下一步</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 开场白（进入时弹出，可一次性关掉不再显示） ============ -->
+<div class="welcome" id="welcome" role="dialog" aria-modal="true" aria-labelledby="welTitle" aria-describedby="welSub">
+  <div class="wel-card">
+    <div class="wel-mark" aria-hidden="true">FS</div>
+    <div class="wel-kicker">Welcome</div>
+    <h2 id="welTitle">欢迎使用您的<span class="hl">全栈工作台</span></h2>
+    <p class="wel-sub" id="welSub">致力于方便架构全栈思路</p>
+    <div class="wel-sign">署名 <b>bee</b></div>
+    <button class="btn btn-brand wel-go" id="welGo" type="button">开始使用</button>
+    <p class="wel-hint">会先带你走一遍 30 秒上手流程</p>
+    <button class="wel-never" id="welNever" type="button">以后不再显示</button>
+  </div>
+</div>
+
 <div id="toasts" data-page-node-id="lOhcdkuY9j7thOA8c57QFK"></div>
 
 <script>
@@ -1735,6 +1856,8 @@ const IDEA_TEMPLATES = [
 
 /* ---------- 1.7 模型预设 ---------- */
 const DEFAULT_MODELS = [
+  { id:"m0", name:"免费开箱 · Pollinations", baseURL:"https://text.pollinations.ai/openai", model:"openai-fast",
+    key:"", noKey:true, raw:true, note:"无需 Key · 零注册 · 每 30 秒 1 次 · 先跑通就选它" },
   { id:"m1", name:"DeepSeek V3", baseURL:"https://api.deepseek.com", model:"deepseek-chat", key:"", note:"国内直连 · 送额度 · 代码能力强" },
   { id:"m5", name:"DeepSeek V4 Pro（工作台 agent 同款）", baseURL:"https://api.deepseek.com", model:"deepseek-v4-pro", key:"", note:"与本地 agent 同款 · 账号需开通该模型 · 不行就退回 V3" },
   { id:"m2", name:"硅基流动 Qwen2.5-72B", baseURL:"https://api.siliconflow.cn/v1", model:"Qwen/Qwen2.5-72B-Instruct", key:"", note:"国内直连 · 送千万 tokens · 免费模型多" },
@@ -4122,19 +4245,44 @@ function exportAll(){
 /* ---------- 配置 ---------- */
 function getConfig(){ try { return JSON.parse(LS.get("fsa_cfg", "{}")); } catch (e) { return {}; } }
 function saveConfig(cfg){ LS.set("fsa_cfg", JSON.stringify(cfg)); updateModelPill(); updateGenBar(); }
-function aiAvailable(){ const c = getConfig(); return !!(c.apiKey && c.baseURL && c.model); }
+/* 免费模型（Pollinations）给的是完整端点而非 Base URL，用 raw 标记区分 */
+function chatEndpoint(c){ return c && c.raw ? c.baseURL : String((c && c.baseURL) || "").replace(/\/+$/, "") + "/chat/completions"; }
+/* 无需 Key 的模型不带 Authorization，避免发一个空的 Bearer 触发 401 */
+function modelHeaders(c){
+  const h = { "Content-Type":"application/json" };
+  if (c && c.apiKey) h.Authorization = "Bearer " + c.apiKey;
+  return h;
+}
+function modelReady(c){ return !!(c && c.model && c.baseURL && (c.apiKey || c.noKey)); }
+function aiAvailable(){ return modelReady(getConfig()); }
 
 function updateModelPill(){
   const c = getConfig(); const pill = $("#modelPill"); if (!pill) return;
   const txt = $("#modelPillText");
-  if (c.apiKey && c.model){ pill.classList.add("on"); txt.textContent = c.modelName || c.model; }
+  if (modelReady(c)){ pill.classList.add("on"); txt.textContent = c.modelName || c.model; }
   else { pill.classList.remove("on"); txt.textContent = "未设置模型"; }
 }
 
 /* ---------- 模型库 ---------- */
 function getModels(){ try { return JSON.parse(LS.get("fsa_models", "[]")); } catch (e) { return []; } }
 function saveModels(l){ LS.set("fsa_models", JSON.stringify(l)); }
-function ensureDefaultModels(){ if (!LS.get("fsa_models", null)) saveModels(DEFAULT_MODELS); }
+function ensureDefaultModels(){
+  let ms = getModels();
+  if (!ms.length) saveModels(ms = DEFAULT_MODELS.slice());
+  else {
+    /* 老用户：把后来新增的预设补进去（按 id 判重，不动用户自建的那条） */
+    const missing = DEFAULT_MODELS.filter(d => !ms.some(m => m.id === d.id));
+    if (missing.length) saveModels(ms = missing.concat(ms));
+  }
+  /* 从没配过模型 → 直接把免费模型设为当前，不配 Key 也能先聊起来。
+     只在真的空着时兜底，绝不覆盖用户自己的选择。 */
+  let cfg = {};
+  try { cfg = JSON.parse(LS.get("fsa_cfg", "{}") || "{}"); } catch (e) { cfg = {}; }
+  if (!cfg.baseURL && !cfg.model){
+    const f = DEFAULT_MODELS[0];
+    LS.set("fsa_cfg", JSON.stringify({ baseURL:f.baseURL, model:f.model, apiKey:"", modelName:f.name, noKey:true, raw:true }));
+  }
+}
 function isCnModel(url){ return /deepseek\.com|siliconflow\.cn|zhipuai|bigmodel\.cn|moonshot\.cn|dashscope|aliyuncs|volces|baidubce|hunyuan|qianwen|minimax/i.test(url || ""); }
 function getActiveModelId(){
   const c = getConfig(); const ms = getModels();
@@ -4143,7 +4291,10 @@ function getActiveModelId(){
 }
 function switchModel(id){
   const m = getModels().find(x => x.id === id); if (!m) return;
-  saveConfig(Object.assign({}, getConfig(), { baseURL:m.baseURL, model:m.model, apiKey:m.key || "", modelName:m.name }));
+  saveConfig(Object.assign({}, getConfig(), {
+    baseURL:m.baseURL, model:m.model, apiKey:m.key || "", modelName:m.name,
+    noKey: !!m.noKey, raw: !!m.raw
+  }));
   toast("已切换模型：" + m.name, "ok");
 }
 function openSettings(){
@@ -4154,11 +4305,11 @@ function openSettings(){
     '<div class="info"><b>' + esc(m.name) + '</b><span>' + esc(m.model) + '</span>' +
     '<span style="white-space:normal">' + (isCnModel(m.baseURL) ? '<span class="tag tag-ok">国产</span> ' : '<span class="tag tag-warn">海外</span> ') + esc(m.note || "") + '</span></div>' +
     '<button class="btn btn-sm" data-edit="' + m.id + '">编辑</button>' +
-    (m.key ? '<span class="tag tag-ok">✓ 有 Key</span>' : '<span class="tag">无 Key</span>') +
+    (m.noKey ? '<span class="tag tag-ok">免费·免 Key</span>' : (m.key ? '<span class="tag tag-ok">✓ 有 Key</span>' : '<span class="tag">无 Key</span>')) +
     '</div>').join("");
   openModal(
     "<h3>模型设置</h3>" +
-    '<p class="hint" style="margin-bottom:14px">点卡片切换模型（自动填好 Base URL / 模型名），点「编辑」填一次 API Key。推荐 <b>DeepSeek</b> 或 <b>硅基流动</b>：国内直连、有免费额度、兼容 OpenAI 协议。</p>' +
+    '<p class="hint" style="margin-bottom:14px">已内置一个<b>免费、免注册、不用 Key</b>的模型（列表第一项），装上就能对话 —— 它每 30 秒只能问 1 次，够用来试手感。要长期用、要长回答或批量生成，点「编辑」填自己的 Key：推荐 <b>DeepSeek</b>（国内直连、送额度）或 <b>硅基流动</b>，都兼容 OpenAI 协议。</p>' +
     '<div style="display:flex;flex-direction:column;gap:9px;max-height:300px;overflow-y:auto" class="scroll">' + cards + "</div>" +
     '<div class="mrow"><button class="btn" id="mAdd">＋ 自定义模型</button>' +
     '<button class="btn" id="mCc">从 CC Switch 导入</button>' +
@@ -4207,7 +4358,8 @@ function saveModelForm(){
   else ms.push({ id:"m" + Date.now(), name:name, baseURL:baseURL, model:model, key:key, note:"自定义" });
   saveModels(ms);
   if (getActiveModelId() === editing || !getConfig().model){
-    saveConfig(Object.assign({}, getConfig(), { baseURL:baseURL, model:model, apiKey:key, modelName:name }));
+    /* 手工填的是 Base URL 语义，必须清掉免费模型那套 raw/noKey 标记，否则端点会拼错 */
+    saveConfig(Object.assign({}, getConfig(), { baseURL:baseURL, model:model, apiKey:key, modelName:name, noKey:false, raw:false }));
   }
   toast("已保存模型配置", "ok"); openSettings();
 }
@@ -4231,17 +4383,17 @@ function openCcImport(){
     if (cc){ cc.baseURL = base; cc.model = model || cc.model; cc.key = key; }
     else { cc = { id:"cc-switch", name:"CC Switch 导入", baseURL:base, model:model || "deepseek-chat", key:key, note:"来自 CC Switch" }; ms.push(cc); }
     saveModels(ms);
-    saveConfig(Object.assign({}, getConfig(), { baseURL:base, model:cc.model, apiKey:key, modelName:cc.name }));
+    saveConfig(Object.assign({}, getConfig(), { baseURL:base, model:cc.model, apiKey:key, modelName:cc.name, noKey:false, raw:false }));
     toast("已导入并切换", "ok"); openSettings();
   };
 }
 function testConnection(){
   const c = getConfig();
-  if (!c.baseURL || !c.model || !c.apiKey){ toast("请先激活一个已填 Key 的模型", "err"); return; }
+  if (!modelReady(c)){ toast("请先激活一个模型（免费模型无需 Key）", "err"); return; }
   toast("正在测试连接…", "info");
-  apiFetch(c.baseURL + "/chat/completions", {
+  apiFetch(chatEndpoint(c), {
     method:"POST",
-    headers:{ "Content-Type":"application/json", "Authorization":"Bearer " + c.apiKey },
+    headers: modelHeaders(c),
     body: JSON.stringify({ model:c.model, messages:[{ role:"user", content:"hi" }], max_tokens:8 })
   }).then(r => {
     if (r.ok) toast("连接成功：" + (c.modelName || c.model) + " 可用", "ok");
@@ -4286,8 +4438,11 @@ function proxyHint(){
     (proxyReady ? "已检测到本地代理" : "未检测到本地代理") + "）\n② 或把连接方式切换为「公共代理」\n③ 或把本页面部署到 https 站点（Vercel / GitHub Pages）";
 }
 function errHint(raw){
+  const c = getConfig();
   let h = proxyHint();
-  if (/429|Too Many|rate/i.test(raw)) h = "服务端返回 429 限流：免费额度并发较严，等 1–2 分钟再试，或在模型设置里换一个供应商。\n" + h;
+  if (/402|FREE_LIMIT|30 seconds|Free limit/i.test(raw) && c.noKey)
+    h = "免费模型限流：同一网络每 30 秒只能问 1 次，等半分钟再发即可。\n想连续用，就在「模型设置」里给 DeepSeek / 硅基流动填一个自己的 Key（注册送额度，比免费池稳得多）。";
+  else if (/429|Too Many|rate/i.test(raw)) h = "服务端返回 429 限流：免费额度并发较严，等 1–2 分钟再试，或在模型设置里换一个供应商。\n" + h;
   else if (/401|Unauthorized/i.test(raw)) h = "401：API Key 无效或已过期，请在「模型设置」里更新 Key。\n" + h;
   else if (/\b400\b|\b404\b/.test(raw)) h = "400/404：模型名或请求路径不对。请确认模型名与供应商文档一致（如 DeepSeek 对话模型为 deepseek-chat）。\n" + h;
   return h;
@@ -4690,9 +4845,9 @@ async function sendMessage(){
   let to = 0;
   try {
     abortCtl = new AbortController();
-    to = timeoutId = setTimeout(() => abortCtl && abortCtl.abort("timeout"), 90000);    const res = await apiFetch(c.baseURL + "/chat/completions", {
+    to = timeoutId = setTimeout(() => abortCtl && abortCtl.abort("timeout"), 90000);    const res = await apiFetch(chatEndpoint(c), {
       method:"POST",
-      headers:{ "Content-Type":"application/json", "Authorization":"Bearer " + c.apiKey },
+      headers: modelHeaders(c),
       body: JSON.stringify({
         model: c.model,
         messages: [{ role:"system", content: SYSTEM_PROMPT + "\n\n" + chatContext() }]
@@ -4836,9 +4991,9 @@ async function aiRefine(silent){
 
   try {
     const c = getConfig();
-    const res = await apiFetch(c.baseURL + "/chat/completions", {
+    const res = await apiFetch(chatEndpoint(c), {
       method:"POST",
-      headers:{ "Content-Type":"application/json", "Authorization":"Bearer " + c.apiKey },
+      headers: modelHeaders(c),
       body: JSON.stringify({
         model:c.model, temperature:0.2,
         messages:[{ role:"system", content:sys },
@@ -5034,8 +5189,8 @@ async function runAuditAI(){
   const stackDesc = stackSummaryLines().replace(/\n/g, "；");
   const sys = "你是严苛的全栈代码审查员。用户按一份选型在做全栈项目，请审查贴入的代码并输出四部分：\n1. 技术栈是否跑偏（用了与选型不符的框架或库）\n2. 全栈链路完整性（逐项列出缺失：前端是否真调后端 / 后端是否真连库 / 认证是否实现 / 环境变量 / 启动脚本 / 迁移文件）\n3. 代码严谨性（错误处理、SQL 注入、XSS、硬编码密钥、明显缺陷）\n4. 结论与修复建议（按严重程度排序）\n用中文、分条、Markdown。";
   try {
-    const res = await apiFetch(c.baseURL + "/chat/completions", {
-      method:"POST", headers:{ "Content-Type":"application/json", "Authorization":"Bearer " + c.apiKey },
+    const res = await apiFetch(chatEndpoint(c), {
+      method:"POST", headers: modelHeaders(c),
       body: JSON.stringify({ model:c.model, temperature:0.3,
         messages:[{ role:"system", content:sys },
           { role:"user", content:"我的选型：\n" + stackDesc + "\n\n待审查代码：\n" + FENCE + "\n" + code.slice(0, 12000) + "\n" + FENCE }] })
@@ -5428,6 +5583,168 @@ function bind(){
   });
 }
 
+/* ---------- 开场白 ---------- */
+const WEL_OFF_KEY = "fsa_welcome_off_v1";
+function showWelcome(){
+  const box = $("#welcome");
+  if (!box) return;
+  if (LS.get(WEL_OFF_KEY, "0") === "1") return;   // 用户选过「以后不再显示」
+  box.classList.add("show");
+  document.documentElement.style.overflow = "hidden";
+  const go = $("#welGo");
+  // 把焦点交给主按钮，键盘用户直接回车即可进入
+  if (go) setTimeout(() => { try { go.focus({ preventScroll: true }); } catch (e) {} }, 80);
+}
+function closeWelcome(never){
+  const box = $("#welcome");
+  if (!box) return;
+  box.classList.remove("show");
+  document.documentElement.style.overflow = "";
+  if (never) LS.set(WEL_OFF_KEY, "1");
+  toast(never ? "好，以后不再自动弹出" : "祝你架构顺利", "ok");
+}
+function bindWelcome(){
+  const box = $("#welcome");
+  if (!box) return;
+  const go2 = $("#welGo"), never = $("#welNever");
+  if (go2) go2.onclick = () => {
+    closeWelcome(false);
+    /* 第一次进来接着走一遍上手讲解；看过的人直接进工作台，不再打扰 */
+    if (LS.get(TOUR_KEY, "0") !== "1") setTimeout(tourOpen, 240);
+  };
+  if (never) never.onclick = () => closeWelcome(true);
+  // 点卡片外的暗色区域也能关闭，符合「弹层可随手关掉」的直觉
+  box.addEventListener("click", e => { if (e.target === box) closeWelcome(false); });
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && box.classList.contains("show")) closeWelcome(false);
+  });
+}
+
+/* ---------- 上手引导（聚光灯分步讲解） ---------- */
+const TOUR_KEY = "fsa_tour_done_v1";
+const TOUR_STEPS = [
+  { view:"architect", sel:null,
+    title:"30 秒看懂这个工作台",
+    body:"它会把你的一句话想法，推演成五层技术选型、数据模型和接口清单，再生成一份能直接投喂 AI 的施工提示词。跟着走 5 步就会了。" },
+  { view:"architect", sel:"#ideaInput",
+    title:"① 先写你想做什么",
+    body:"一句人话就够：谁在用、要做什么、有什么约束。不想想就从上面「快速模板」挑一个，改两个字。" },
+  { view:"architect", sel:"#btnGen",
+    title:"② 点一下，出全套",
+    body:"自动识别项目类型、预选技术栈、勾好适用功能，一次产出 7 份交付物。在任何输入框里按 Ctrl + Enter 也行。" },
+  { view:"architect", sel:"#featCats",
+    title:"③ 功能按需增减",
+    body:"功能库有 60 条，已按项目类型自动勾好。点卡片取消、按分类筛选；「我自己的功能」里一行写一条，边写边生效。" },
+  { view:"architect", sel:"#outTabs",
+    title:"④ 拿走成品",
+    body:"提示词粘给 Cursor / Claude Code 就能开工；SQL 建表脚本拿去直接跑；还有排期表、验收清单。点「导出交付物」一次全拿走。" },
+  { view:"chat", sel:"#modelPill", last:true,
+    title:"⑤ 卡住了就问 AI",
+    body:"切到「AI 开发助手」，已内置免费模型、不用配 Key（每 30 秒 1 次）。想更快更稳，点这个胶囊填自己的 DeepSeek / 硅基流动 Key。" }
+];
+let tourIdx = 0, tourOn = false;
+
+function placeTour(){
+  if (!tourOn) return;
+  const s = TOUR_STEPS[tourIdx], tip = $("#tourTip"), hole = $("#tourHole"), root = $("#tour");
+  if (!tip || !hole || !root) return;
+  const vw = innerWidth, vh = innerHeight;
+  const target = s.sel ? $(s.sel) : null;
+  const okBox = target && (target.getBoundingClientRect().width || target.getBoundingClientRect().height);
+  if (!okBox){
+    /* 目标不存在或不可见（例如窄屏下侧栏收起）：退回居中卡片，不硬指 */
+    root.classList.add("center");
+    hole.style.display = "none";
+    tip.style.left = "50%"; tip.style.top = "50%"; tip.style.transform = "translate(-50%,-50%)";
+    return;
+  }
+  root.classList.remove("center");
+  tip.style.transform = "";
+  const r = target.getBoundingClientRect(), pad = 9;
+  const x = Math.max(6, r.left - pad), y = Math.max(6, r.top - pad);
+  const w = Math.min(vw - 12, r.width + pad * 2), h = Math.min(vh - 12, r.height + pad * 2);
+  hole.style.display = "block";
+  hole.style.left = x + "px"; hole.style.top = y + "px";
+  hole.style.width = w + "px"; hole.style.height = h + "px";
+  /* 提示卡优先放洞下方，放不下就翻到上方，左右夹在视口内 */
+  const tw = Math.min(344, vw - 24);
+  tip.style.width = tw + "px";
+  const th = tip.offsetHeight || 200;
+  let top = y + h + 14;
+  if (top + th > vh - 12) top = Math.max(12, y - th - 14);
+  let left = x + w / 2 - tw / 2;
+  left = Math.max(12, Math.min(left, vw - tw - 12));
+  tip.style.left = Math.round(left) + "px";
+  tip.style.top = Math.round(top) + "px";
+}
+
+function renderTourStep(){
+  const s = TOUR_STEPS[tourIdx], tip = $("#tourTip");
+  $("#tourStep").textContent = (tourIdx + 1) + " / " + TOUR_STEPS.length;
+  $("#tourTitle").textContent = s.title;
+  $("#tourBody").textContent = s.body;
+  $("#tourNext").textContent = s.last ? "开始使用" : "下一步";
+  $("#tourPrev").hidden = tourIdx === 0;
+  if (tip){ tip.style.animation = "none"; void tip.offsetWidth; tip.style.animation = ""; }
+  if (s.view && state.view !== s.view) go(s.view);
+  /* 先把目标滚到视线中部。必须显式指定 behavior:"instant" —— 页面有
+     html{scroll-behavior:smooth}，不写就会变成平滑滚动，量到的是动画中间值，聚光灯会错位。 */
+  const t = s.sel ? $(s.sel) : null;
+  if (t){
+    const r = t.getBoundingClientRect();
+    const y2 = r.top + window.pageYOffset - Math.max(16, (innerHeight - r.height) / 2);
+    window.scrollTo({ top: Math.max(0, y2), behavior: "instant" });
+  }
+  requestAnimationFrame(placeTour);
+  setTimeout(placeTour, 120);
+  setTimeout(placeTour, 300);
+}
+
+function tourOpen(){
+  const root = $("#tour");
+  if (!root) return;
+  tourIdx = 0; tourOn = true;
+  root.classList.add("on");
+  renderTourStep();
+  const next = $("#tourNext");
+  if (next) setTimeout(() => { try { next.focus({ preventScroll: true }); } catch (e) {} }, 140);
+}
+function tourClose(done){
+  const root = $("#tour");
+  if (!root || !tourOn) return;
+  tourOn = false;
+  root.classList.remove("on", "center");
+  const hole = $("#tourHole"); if (hole) hole.style.display = "none";
+  if (done) LS.set(TOUR_KEY, "1");
+}
+function tourNext(){
+  if (tourIdx >= TOUR_STEPS.length - 1){
+    tourClose(true);
+    toast("讲解结束，开干吧。随时点左下角「使用讲解」可以再看", "ok");
+    return;
+  }
+  tourIdx++; renderTourStep();
+}
+function tourPrev(){ if (tourIdx > 0){ tourIdx--; renderTourStep(); } }
+function bindTour(){
+  const root = $("#tour");
+  if (!root) return;
+  const next = $("#tourNext"), prev = $("#tourPrev"), skip = $("#tourSkip"), rail = $("#railTour");
+  if (next) next.onclick = tourNext;
+  if (prev) prev.onclick = tourPrev;
+  if (skip) skip.onclick = () => { tourClose(true); toast("已跳过。左下角「使用讲解」随时可以再看", "info"); };
+  if (rail) rail.onclick = () => tourOpen();
+  document.addEventListener("keydown", e => {
+    if (!tourOn) return;
+    if (e.key === "Escape"){ e.preventDefault(); tourClose(true); }
+    else if (e.key === "ArrowRight"){ e.preventDefault(); tourNext(); }
+    else if (e.key === "ArrowLeft"){ e.preventDefault(); tourPrev(); }
+  });
+  /* 目标会随页面滚动/窗口变化而移位，讲解期间持续跟随 */
+  window.addEventListener("scroll", () => { if (tourOn) placeTour(); }, true);
+  window.addEventListener("resize", () => { if (tourOn) placeTour(); });
+}
+
 /* ---------- 启动 ---------- */
 function init(){
   initTheme();
@@ -5448,6 +5765,7 @@ function init(){
   if (restored) { buildOutputs(); renderOut(); showDraftNotice(d); }
   pingLocalProxy();
   go("chat");
+  bindWelcome(); bindTour(); showWelcome();
 }
 /* 草稿恢复提示：告诉用户「配置找回来了」，并给一个立刻放弃的出口 */
 function showDraftNotice(d){

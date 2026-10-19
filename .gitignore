@@ -5,6 +5,9 @@
 proxy.log
 proxy.err
 
+# 线上发布目录（由 FullStack-Architect.html 复制而来，不提交）
+.deploy/
+
 # 系统文件
 Thumbs.db
 .DS_Store
